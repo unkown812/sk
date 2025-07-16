@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, Download } from 'lucide-react';
 import supabase from '../lib/supabase';
 
-
 interface Student {
   id?: number;
   name: string;
