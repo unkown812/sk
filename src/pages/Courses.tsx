@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlusCircle, Search, Filter, BookOpen, Users, Clock } from 'lucide-react';
+import { PlusCircle, Search, Filter,} from 'lucide-react';
 import TabNav from '../components/ui/TabNav';
 const MOCK_COURSES = [
   {
@@ -105,9 +105,13 @@ const MOCK_BATCHES = [
 
 const Courses: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  
   const [selectedCategory, setSelectedCategory] = useState('All');
+
   const [activeTab, setActiveTab] = useState('courses');
+
   const categories = ['All', 'School (8-10th)', 'Junior College (11-12th)', 'Diploma', 'Degree', 'JEE', 'NEET', 'MHCET'];
+
   const filteredCourses = MOCK_COURSES.filter(course => {
     const matchesSearch =
       course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -115,6 +119,7 @@ const Courses: React.FC = () => {
     const matchesCategory = selectedCategory === 'All' || course.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
   const filteredBatches = MOCK_BATCHES.filter(batch => {
     const matchesSearch =
       batch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -124,6 +129,7 @@ const Courses: React.FC = () => {
       MOCK_COURSES.find(course => course.name === batch.course)?.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
   const tabs = [
     { id: 'courses', label: 'Courses' },
     { id: 'batches', label: 'Batches' }

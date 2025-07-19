@@ -46,7 +46,7 @@ const Students: React.FC = () => {
   const [selectedCourse, setSelectedCourse] = useState('All');
   const [selectedYear, setSelectedYear] = useState(0);
   const [yearOptionsJuniorCollege] = useState<number[]>([11, 12]);
-  const [yearOptionsDiploma] = useState<number[]>([11,12,13]);
+  const [yearOptionsDiploma] = useState<number[]>([11, 12, 13]);
   const [yearOptionsSchool] = useState<number[]>([5, 6, 7, 8, 9, 10]);
   const [studentCourses, setStudentCourses] = useState<string[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -203,7 +203,7 @@ const Students: React.FC = () => {
     }
   };
 
-const handleRowClick = (studentId?: number) => {
+  const handleRowClick = (studentId?: number) => {
     if (studentId) {
       const student = students.find(s => s.id === studentId) || null;
       setEditStudent(student);
@@ -303,6 +303,8 @@ const handleRowClick = (studentId?: number) => {
           student.installment_amt,
           student.installment_dates,
         ];
+        
+
         return row.join(',');
       }),
     ].join('\n');
@@ -380,7 +382,6 @@ const handleRowClick = (studentId?: number) => {
   }, [selectedCategory]);
 
   const feeStatuses = ['Paid', 'Partial', 'Unpaid'];
-
   const filteredStudents = students.filter((student) => {
     const matchesSearch =
       student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -445,28 +446,6 @@ const handleRowClick = (studentId?: number) => {
         setAdding(false);
         return;
       }
-      // if (enrollmentYearStart === '' || enrollmentYearEnd === '') {
-      //   setAddError('Please enter both enrollment start and end years.');
-      //   setAdding(false);
-      //   return;
-      // }
-      // if (typeof enrollmentYearStart === 'number' && typeof enrollmentYearEnd === 'number' && enrollmentYearStart > enrollmentYearEnd) {
-      //   setAddError('Enrollment start year cannot be greater than end year.');
-      //   setAdding(false);
-      //   return;
-      // }
-      // if (!newStudent.installment_dates || newStudent.installment_dates.length !== (newStudent.installments || 0)) {
-      //   setAddError('Please enter due dates for all installments.');
-      //   setAdding(false);
-      //   return;
-      // }
-      // for (const dateStr of newStudent.installment_dates) {
-      //   if (!dateStr || isNaN(Date.parse(dateStr))) {
-      //     setAddError('Please enter valid due dates for all installments.');
-      //     setAdding(false);
-      //     return;
-      //   }
-      // }
 
       const totalFeeNum = Number(newStudent.total_fee);
       const installmentsNum = Math.min(Math.max(Number(newStudent.installments), 1), 24);
@@ -517,7 +496,12 @@ const handleRowClick = (studentId?: number) => {
       setAddError('Please enter a positive amount.');
       return;
     }
-    const updatedPaidFee = (newStudent.paid_fee || 0) + feeAmount;
+    const updatedPaidFee = (newStudent.paid_fee || 0) + (newStudent.installment_amt ? newStudent.installment_amt.reduce((a, b) => a + b, 0) : 0);
+    const { error: insertError } = await supabase
+      .from('students')
+      .update({paid_fee: newStudent.installment_amt?.reduce((sum, current) => sum + current, 0)})
+      .eq('id', newStudent.id);
+
     const updatedFeeStatus = updatedPaidFee >= (newStudent.total_fee || 0) ? 'Paid' : 'Partial';
     const updatedDueAmount = (newStudent.total_fee || 0) - updatedPaidFee;
     setAdding(true);
@@ -526,7 +510,7 @@ const handleRowClick = (studentId?: number) => {
       // Update student fee info
       const { error: updateError } = await supabase
         .from('students')
-        .update({ paid_fee: updatedPaidFee, fee_status: updatedFeeStatus, due_amount: updatedDueAmount, last_payment: new Date().toISOString().split('T')[0] })
+        .update({ paid_fee: newStudent.installment_amt?.reduce((sum, current) => sum + current, 0), fee_status: updatedFeeStatus, due_amount: updatedDueAmount, last_payment: new Date().toISOString().split('T')[0] })
         .eq('id', newStudent.id);
 
       if (updateError) {
@@ -566,8 +550,9 @@ const handleRowClick = (studentId?: number) => {
         setAddError('An unknown error occurred.');
       }
     }
-    setAdding(false);
-  };
+  }
+    // update({ paid_fee: updatedPaidFee, fee_status: updatedFeeStatus, due_amount: updatedDueAmount, last_payment: new Date().toISOString().split('T')[0] })
+    //     .eq('id', newStudent.id);
 
   const getRemainingFee = (student: Student) => {
     return (student.total_fee || 0) - (student.paid_fee || 0);
@@ -646,7 +631,7 @@ const handleRowClick = (studentId?: number) => {
                   value={editStudent.year || ''}
                   onChange={handleEditInputChange}
                   className="input-field mt-1"
-                 
+
                 />
               </div>
               <div>
@@ -658,7 +643,7 @@ const handleRowClick = (studentId?: number) => {
                   value={editStudent.semester || ''}
                   onChange={handleEditInputChange}
                   className="input-field mt-1"
-                 
+
                 />
               </div>
               <div>
@@ -692,7 +677,7 @@ const handleRowClick = (studentId?: number) => {
                   value={enrollmentYearStart}
                   onChange={handleEnrollmentYearStartChange}
                   className="input-field mt-1"
-                  
+
                 />
               </div>
               <div>
@@ -931,7 +916,7 @@ const handleRowClick = (studentId?: number) => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-              {(() => {
+            {(() => {
               // Group students by category, then course, then year
               const grouped: Record<string, Record<string, Record<number, Student[]>>> = {};
               filteredStudents.forEach(student => {
@@ -1329,7 +1314,7 @@ const handleRowClick = (studentId?: number) => {
                 </button>
               )}
             </div> */}
-              <div className="mt-6">
+            <div className="mt-6">
               <h3 className="text-lg font-semibold mb-2">Installments</h3>
               <button
                 className="btn-primary mb-4"
@@ -1355,6 +1340,7 @@ const handleRowClick = (studentId?: number) => {
                   setAdding(true);
                   setAddError(null);
                   try {
+                    const paidFeeSum = newStudent.installment_amt ? newStudent.installment_amt.reduce((sum, current) => sum + current, 0) : 0;
                     const { error } = await supabase
                       .from('students')
                       .update({
@@ -1362,6 +1348,7 @@ const handleRowClick = (studentId?: number) => {
                         installment_dates: newStudent.installment_dates,
                         installment_descriptions: newStudent.installment_descriptions, // Save descriptions
                         installments: newStudent.installment_amt.length,
+                        paid_fee: paidFeeSum,
                       })
                       .eq('id', newStudent.id);
                     if (error) {
@@ -1452,18 +1439,18 @@ const handleRowClick = (studentId?: number) => {
 
       {/* Receipt Modal */}
       {showReceiptModal && receiptStudent && (
-        <ReceiptModal 
-          student={receiptStudent} 
+        <ReceiptModal
+          student={receiptStudent}
           onClose={() => {
             setShowReceiptModal(false);
             setReceiptStudent(null);
-          }} 
+          }}
         />
       )}
 
       {/* Fee Due Reminder Modal */}
       {showFeeDueReminder && (
-        <FeeDueReminder 
+        <FeeDueReminder
           showFeeDueReminder={showFeeDueReminder}
           dueStudents={dueStudents}
           onDismiss={() => setShowFeeDueReminder(false)}
@@ -1471,5 +1458,6 @@ const handleRowClick = (studentId?: number) => {
         />
       )}
     </div>
-  )}
+  )
+}
 export default Students;

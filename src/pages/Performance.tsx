@@ -189,7 +189,7 @@ const Performance: React.FC = () => {
         const percentage = (marksNum / totalMarksNum) * 100;
         return {
           exam_name: resultExamName,
-          date: new Date().toISOString().split('T')[0], // Use current date
+          date: new Date().toISOString().split('T')[0], 
           marks: marksNum,
           total_marks: totalMarksNum,
           percentage,
@@ -200,7 +200,6 @@ const Performance: React.FC = () => {
       const { error } = await supabase.from('performance').insert(insertData);
       if (error) throw error;
       setShowAddResultModal(false);
-      // Clear form
       setResultExamName('');
       setResultTotalMarks('');
       setResultCategoryFilter('All');
@@ -215,7 +214,7 @@ const Performance: React.FC = () => {
     }
   };
 
-  // Filtered exams and performances based on search and category
+
   const filteredExams = exams.filter(exam => {
     if (selectedCategory !== 'All' && exam.category !== selectedCategory) return false;
     if (searchTerm && !exam.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
@@ -228,7 +227,6 @@ const Performance: React.FC = () => {
     return true;
   });
 
-  // Group performances by exam_name, then by category, course, year
   type GroupedPerformances = {
     [examName: string]: {
       [categoryCourseYear: string]: Performance[];
@@ -241,14 +239,13 @@ const Performance: React.FC = () => {
     if (!groupedPerformances[perf.exam_name]) {
       groupedPerformances[perf.exam_name] = {};
     }
-    const key = `${perf.student_category}||${perf.student_name}`; // Using student_name here since course and year are not in performance
+    const key = `${perf.student_category}||${perf.student_name}`;
     if (!groupedPerformances[perf.exam_name][key]) {
       groupedPerformances[perf.exam_name][key] = [];
     }
     groupedPerformances[perf.exam_name][key].push(perf);
   });
 
-  // State to track expanded exam/category groups
   const [expandedGroups, setExpandedGroups] = React.useState<Set<string>>(new Set());
 
   const toggleGroup = (examName: string, category: string) => {

@@ -30,7 +30,7 @@ interface FeeSummary {
   payment_date: string;
   payment_method: string;
   status: 'Paid' | 'Partial' | 'Unpaid';
-  description:string;
+  description: string;
 }
 
 const Fees: React.FC = () => {
@@ -44,10 +44,10 @@ const Fees: React.FC = () => {
   const [showTable, setShowTable] = useState<boolean>(true);
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
   const [paymentAmount, setPaymentAmount] = useState<string>('');
-  const [feeStatus, setFeeStatus]= useState<string>('Unpaid');
+  const [feeStatus, setFeeStatus] = useState<string>('Unpaid');
   const [paymentDate, setPaymentDate] = useState<string>(() => {
     const today = new Date();
-    return today.toISOString().split('T')[0]; 
+    return today.toISOString().split('T')[0];
   });
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
   const [paymentDetails, setPaymentDetails] = useState<string>('');
@@ -111,7 +111,7 @@ const Fees: React.FC = () => {
           amountPaid: amountPaid,
           amountDue: amountDue,
           status: actualStatus,
-          payment_date: '', 
+          payment_date: '',
           payment_method: '',
           description: '',
         };
@@ -511,43 +511,41 @@ const Fees: React.FC = () => {
       )}
 
       <div className="table-container">
-          <table className="data-table">
-            <thead>
-             <tr className='bg-slate-200'>
-                <th colSpan={8} className="text-xl text-center thhead">Fee Payments</th>
+        <table className="data-table">
+          <thead>
+            <tr className='bg-slate-200'>
+              <th colSpan={8} className="text-xl text-center thhead">Fee Payments</th>
+            </tr>
+            <tr>
+              <th>Student</th>
+              <th>Payment Date</th>
+              <th>Payment Method</th>
+              <th>Amount</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {payments.map((payment) => (
+              <tr key={payment.id}>
+                <td className="font-medium">{payment.name}</td>
+                <td>
+                  <span className="text-sky-800 font-bold">{payment.payment_date}</span>
+                </td>
+                <td>{payment.payment_method}</td>
+                <td>₹{payment.amount.toLocaleString()}</td>
+                <td className="font-medium">{payment.description}</td>
               </tr>
+            ))}
+            {payments.length === 0 && (
               <tr>
-                <th>Student</th>
-                <th>Payment Date</th>
-                <th>Payment Method</th>
-                <th>Amount</th>
-                <th>Description</th>
+                <td colSpan={5} className="text-center py-4 text-gray-500">
+                  No payment records found
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {payments.map((payment) => (
-                <tr key={payment.id}>
-                  <td className="font-medium">{payment.student_name}</td>
-                  <td>
-                    <span className="text-sky-800 font-bold">{payment.payment_date}</span> 
-                  </td>
-                  <td>{payment.payment_method}</td>
-                  <td>₹{payment.amount.toLocaleString()}</td>
-                  <td className="font-medium">{payment.description}</td>
-                </tr>
-              ))}
-              {payments.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="text-center py-4 text-gray-500">
-                    No payment records found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-      
+            )}
+          </tbody>
+        </table>
+      </div>
 
       <div className="flex items-center justify-between">
         <div className="text-sm text-gray-700">
