@@ -1209,35 +1209,6 @@ const Students: React.FC = () => {
               </button>
             </div>
             {addError && <div className="mb-4 text-red-600 font-medium">{addError}</div>}
-            {/* <div className="space-y-4">
-              <p>Total Fee: ₹{newStudent.total_fee}</p>
-              <p>Paid Fee: ₹{newStudent.paid_fee}</p>
-              <p>Remaining Fee: ₹{getRemainingFee(newStudent)}</p>
-              {(newStudent.fee_status === 'Unpaid' || newStudent.fee_status === 'Partial') && (
-                <div>
-                  <label htmlFor="feeAmount" className="block text-sm font-medium text-gray-700">
-                    Add Amount (₹)
-                  </label>
-                  <input
-                    type="number"
-                    id="feeAmount"
-                    min={0}
-                    value={feeAmount ?? ''}
-                    onChange={handleFeeAmountChange}
-                    className="input-field mt-1"
-                    placeholder="Enter amount to add"
-                  />
-                </div>
-              )}
-            </div> */}
-            {/* <div className="mt-6 flex justify-end space-x-4">
-              <button className="btn-secondary" onClick={() => setShowFeeModal(false)} disabled={adding}>Cancel</button>
-              {(newStudent.fee_status === 'Unpaid' || newStudent.fee_status === 'Partial') && (
-                <button className="btn-primary" onClick={handleFeeUpdate} disabled={adding}>
-                  {adding ? 'Saving...' : 'Save'}
-                </button>
-              )}
-            </div> */}
             <div className="mt-6">
               <h3 className="text-lg font-semibold mb-2">Installments</h3>
               <button

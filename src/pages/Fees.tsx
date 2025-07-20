@@ -7,16 +7,24 @@ interface Student {
   name: string;
   category: string;
   course: string;
-  year: number;
+  year: number | null;
+  semester: number | null;
   email: string;
   phone: string;
   enrollment_date: string;
+  created_at: string;
   fee_status: string;
-  total_fee: number;
-  paid_fee: number;
-  due_amount: number;
-  installment_amt: number;
-  installments: number;
+  total_fee: number | null;
+  paid_fee: number | null;
+  due_amount: number | null;
+  last_payment: string;
+  birthday: string;
+  installment_amt: number[];
+  installments: number | null;
+  installment_dates?: string[];
+  installment_descriptions?: string[];
+  enrollment_year: number[];
+  subjects_enrolled: string[];
 }
 
 interface FeeSummary {
@@ -50,9 +58,37 @@ const Fees: React.FC = () => {
     return today.toISOString().split('T')[0];
   });
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
+  const [showFeeModal, setShowFeeModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState<string>('');
   const [submitLoading, setSubmitLoading] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [addError, setAddError] = useState<string | null>(null);
+  const [feeAmount, setFeeAmount] = useState<number | null>(null);
+  const [newStudent, setNewStudent] = useState<Student>({
+    id: 0,
+    name: '',
+    category: '',
+    course: '',
+    year: null,
+    semester: null,
+    email: '',
+    phone: '',
+    enrollment_date: new Date().toISOString().split('T')[0],
+    created_at: new Date().toISOString().split('T')[0],
+    fee_status: '',
+    total_fee: null,
+    paid_fee: null,
+    due_amount: null,
+    last_payment: new Date().toISOString().split('T')[0],
+    birthday: '',
+    installment_amt: [],
+    installments: null,
+    installment_dates: [],
+    installment_descriptions: [],
+    enrollment_year: [],
+    subjects_enrolled: [],
+  });
 
   const handleFeeAction = (fee: FeeSummary) => {
     if (fee.amountDue > 0) {
@@ -129,6 +165,13 @@ const Fees: React.FC = () => {
 
   const closePaymentModal = () => {
     setShowPaymentModal(false);
+  };
+
+  const handleOpenFeeModal = (student: Student) => {
+    // setNewStudent(student);
+    setFeeAmount(null);
+    setAddError(null);
+    setShowFeeModal(true);
   };
 
   const handlePaymentSubmit = async (e: React.FormEvent) => {
@@ -509,6 +552,166 @@ const Fees: React.FC = () => {
           </table>
         </div>
       )}
+
+      {/* Fee Update Modal */}
+            {showFeeModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold">Update Fee for {newStudent.name}</h2>
+                    <button
+                      className="text-gray-500 hover:text-gray-700"
+                      onClick={() => setShowFeeModal(false)}
+                      aria-label="Close fee modal"
+                    >
+                      <XCircle className="h-6 w-6" />
+                    </button>
+                  </div>
+                  {addError && <div className="mb-4 text-red-600 font-medium">{addError}</div>}
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold mb-2">Installments</h3>
+                    <button
+                      className="btn-primary mb-4"
+                      onClick={() => {
+                        if (!newStudent.installment_amt) newStudent.installment_amt = [];
+                        if (!newStudent.installment_dates) newStudent.installment_dates = [];
+                        if (!newStudent.installment_descriptions) newStudent.installment_descriptions = [];
+                        newStudent.installment_amt.push(0);
+                        newStudent.installment_dates.push('');
+                        newStudent.installment_descriptions.push(''); // Add empty description for new installment
+                        setNewStudent({ ...newStudent });
+                      }}
+                    >
+                      Add Installment
+                    </button>
+                    <button
+                      className="btn-primary mb-4 ml-4"
+                      onClick={async () => {
+                        if (!newStudent.id) {
+                          setAddError('Student ID is missing.');
+                          return;
+                        }
+                        setAdding(true);
+                        setAddError(null);
+                        try {
+                          const paidFeeSum = newStudent.installment_amt ? newStudent.installment_amt.reduce((sum, current) => sum + current, 0) : 0;
+                          const { error } = await supabase
+                            .from('students')
+                            .update({
+                              installment_amt: newStudent.installment_amt,
+                              installment_dates: newStudent.installment_dates,
+                              installment_descriptions: newStudent.installment_descriptions, // Save descriptions
+                              installments: newStudent.installment_amt.length,
+                              paid_fee: paidFeeSum,
+                            })
+                            .eq('id', newStudent.id);
+                          if (error) {
+                            setAddError(error.message);
+                          } else {
+                            fetchStudents();
+                          }
+                        } catch (err: unknown) {
+                          if (err instanceof Error) {
+                            setAddError(err.message);
+                          } else {
+                            setAddError('An unknown error occurred.');
+                          }
+                        }
+                        setAdding(false);
+                      }}
+                    >
+                      Save Installments
+                    </button>
+                    <div className="space-y-4 max-h-64 overflow-auto">
+                      {newStudent.installment_amt && newStudent.installment_amt.map((amt, index) => (
+                        <div key={index} className="border border-gray-300 rounded p-3">
+                          <label className="block text-sm font-medium mb-1" htmlFor={`installment_amt_${index}`}>
+                            Installment Amount (₹)
+                          </label>
+                          <input
+                            type="number"
+                            id={`installment_amt_${index}`}
+                            value={amt}
+                            min={0}
+                          onChange={(e) => {
+                            const value = Number(e.target.value);
+                            const newAmts = [...(newStudent.installment_amt || [])];
+                            newAmts[index] = value;
+                            const paidFeeSum = newAmts.reduce((sum, current) => sum + current, 0);
+                            setNewStudent(prev => ({ ...prev, installment_amt: newAmts, paid_fee: paidFeeSum }));
+                          }}
+                            className="input-field w-full"
+                          />
+                          <button
+                            className="btn-secondary mt-2"
+                            onClick={() => {
+                              setReceiptStudent({
+                                ...newStudent,
+                                paid_fee: amt,
+                                last_payment: newStudent.installment_dates ? newStudent.installment_dates[index] : '',
+                              });
+                              setShowReceiptModal(true);
+                            }}
+                          >
+                            Print Receipt
+                          </button>
+                          <label className="block text-sm font-medium mt-3 mb-1" htmlFor={`installment_date_${index}`}>
+                            Installment Date
+                          </label>
+                          <input
+                            type="date"
+                            id={`installment_date_${index}`}
+                            value={newStudent.installment_dates && newStudent.installment_dates[index] ? newStudent.installment_dates[index] : ''}
+                            onChange={(e) => {
+                              const newDates = newStudent.installment_dates ? [...newStudent.installment_dates] : [];
+                              newDates[index] = e.target.value;
+                              setNewStudent(prev => ({ ...prev, installment_dates: newDates }));
+                            }}
+                            className="input-field w-full"
+                          />
+                          <label className="block text-sm font-medium mt-3 mb-1" htmlFor={`installment_description_${index}`}>
+                            Installment Description
+                          </label>
+                          <input
+                            type="text"
+                            id={`installment_description_${index}`}
+                            value={newStudent.installment_descriptions && newStudent.installment_descriptions[index] ? newStudent.installment_descriptions[index] : ''}
+                            onChange={(e) => {
+                              const newDescriptions = newStudent.installment_descriptions ? [...newStudent.installment_descriptions] : [];
+                              newDescriptions[index] = e.target.value;
+                              setNewStudent(prev => ({ ...prev, installment_descriptions: newDescriptions }));
+                            }}
+                            className="input-field w-full"
+                            placeholder="Enter description"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+      
+            {/* Receipt Modal */}
+            {showReceiptModal && receiptStudent && (
+              <ReceiptModal
+                student={receiptStudent}
+                onClose={() => {
+                  setShowReceiptModal(false);
+                  setReceiptStudent(null);
+                }}
+              />
+            )}
+      
+            {/* Fee Due Reminder Modal */}
+            {showFeeDueReminder && (
+              <FeeDueReminder
+                showFeeDueReminder={showFeeDueReminder}
+                dueStudents={dueStudents}
+                onDismiss={() => setShowFeeDueReminder(false)}
+                onSendWhatsAppMessages={sendWhatsAppMessagesToDueStudents}
+              />
+            )}
 
       <div className="table-container">
         <table className="data-table">
