@@ -42,8 +42,6 @@ const Performance: React.FC = () => {
   const [performances, setPerformances] = useState<Performance[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  // States for adding exam schedule
   const [showAddExamModal, setShowAddExamModal] = useState<boolean>(false);
   const [scheduleExamName, setScheduleExamName] = useState<string>('');
   const [scheduleDate, setScheduleDate] = useState<string>('');
@@ -54,8 +52,6 @@ const Performance: React.FC = () => {
   const [scheduleMarks, setScheduleMarks] = useState<number | ''>('');
   const [scheduleFormError, setScheduleFormError] = useState<string | null>(null);
   const [scheduleSaving, setScheduleSaving] = useState<boolean>(false);
-
-  // States for adding exam result
   const [showAddResultModal, setShowAddResultModal] = useState<boolean>(false);
   // Remove old single exam and student states
   // const [resultExamId, setResultExamId] = useState<string>('');
@@ -83,7 +79,6 @@ const Performance: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      // Fetch students
       const { data: studentsData, error: studentsError } = await supabase
         .from('students')
         .select('*');

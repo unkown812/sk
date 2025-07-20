@@ -31,7 +31,7 @@ interface Student {
   installment_amt: number[];
   installments: number | null;
   installment_dates?: string[];
-  installment_descriptions?: string[]; // Added installment descriptions array
+  installment_descriptions?: string[];
   enrollment_year: number[];
   subjects_enrolled: string[];
 }
@@ -209,11 +209,6 @@ const Students: React.FC = () => {
       setEditStudent(student);
       setShowEditModal(true);
     }
-  };
-
-  const openReceiptModal = (student: Student) => {
-    setReceiptStudent(student);
-    setShowReceiptModal(true);
   };
 
   const sendWhatsAppMessage = async (phone: string, message: string) => {
@@ -449,7 +444,6 @@ const Students: React.FC = () => {
 
       const totalFeeNum = Number(newStudent.total_fee);
       const installmentsNum = Math.min(Math.max(Number(newStudent.installments), 1), 24);
-      const installmentAmtNum = installmentsNum > 0 ? totalFeeNum / installmentsNum : 0;
       const dueAmountNum = totalFeeNum - (newStudent.paid_fee || 0);
 
       const studentToInsert = {
@@ -457,10 +451,6 @@ const Students: React.FC = () => {
         total_fee: totalFeeNum,
         due_amount: dueAmountNum,
         semester: newStudent.semester,
-        // installments: installmentsNum,
-        // installment_amt: installmentAmtNum,
-        // enrollment_year: [enrollmentYearStart, enrollmentYearEnd],
-        // installment_dates: newStudent.installment_dates,
       };
 
       const { error } = await supabase.from('students').insert([studentToInsert]);
@@ -487,76 +477,12 @@ const Students: React.FC = () => {
     setShowFeeModal(true);
   };
 
-  const handleFeeAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFeeAmount(Number(e.target.value));
-  };
-
-  const handleFeeUpdate = async () => {
-    if (!feeAmount || feeAmount <= 0) {
-      setAddError('Please enter a positive amount.');
-      return;
-    }
-    const updatedPaidFee = (newStudent.paid_fee || 0) + (newStudent.installment_amt ? newStudent.installment_amt.reduce((a, b) => a + b, 0) : 0);
-    const { error: insertError } = await supabase
-      .from('students')
-      .update({paid_fee: newStudent.installment_amt?.reduce((sum, current) => sum + current, 0)})
-      .eq('id', newStudent.id);
-
-    const updatedFeeStatus = updatedPaidFee >= (newStudent.total_fee || 0) ? 'Paid' : 'Partial';
-    const updatedDueAmount = (newStudent.total_fee || 0) - updatedPaidFee;
-    setAdding(true);
-    setAddError(null);
-    try {
-      // Update student fee info
-      const { error: updateError } = await supabase
-        .from('students')
-        .update({ paid_fee: newStudent.installment_amt?.reduce((sum, current) => sum + current, 0), fee_status: updatedFeeStatus, due_amount: updatedDueAmount, last_payment: new Date().toISOString().split('T')[0] })
-        .eq('id', newStudent.id);
-
-      if (updateError) {
-        setAddError(updateError.message);
-        setAdding(false);
-        return;
-      }
-
-      // Insert payment record in payments table
-      const paymentRecord = {
-        name: newStudent.name,
-        category: newStudent.category,
-        course: newStudent.course,
-        totalAmount: newStudent.total_fee || 0,
-        amountPaid: feeAmount,
-        amountDue: updatedDueAmount,
-        payment_date: new Date().toISOString().split('T')[0],
-        payment_method: 'Installment',
-        status: updatedFeeStatus,
-        description: 'Installment payment', // Default description, can be enhanced to get from input if needed
-      };
-
-      const { error: insertError } = await supabase
-        .from('payments')
-        .insert([paymentRecord]);
-
-      if (insertError) {
-        setAddError(insertError.message);
-      } else {
-        setShowFeeModal(false);
-        fetchStudents();
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setAddError(err.message);
-      } else {
-        setAddError('An unknown error occurred.');
-      }
-    }
-  }
     // update({ paid_fee: updatedPaidFee, fee_status: updatedFeeStatus, due_amount: updatedDueAmount, last_payment: new Date().toISOString().split('T')[0] })
     //     .eq('id', newStudent.id);
 
-  const getRemainingFee = (student: Student) => {
-    return (student.total_fee || 0) - (student.paid_fee || 0);
-  };
+  // const getRemainingFee = (student: Student) => {
+  //   return (student.total_fee || 0) - (student.paid_fee || 0);
+  // };
 
   return (
     <div className="space-6">
@@ -745,7 +671,7 @@ const Students: React.FC = () => {
               </div>
               {editStudent.installments && editStudent.installments > 0 && (
                 <div className="mt-4">
-                  <h3 className="text-md font-semibold mb-2">Installment Due Dates</h3>
+                  <h3 className="text-md font-semibold mb-2">Installment Dates</h3>
                   {[...Array(editStudent.installments)].map((_, index) => (
                     <div key={index} className="mb-2">
                       <label htmlFor={`installment_date_${index}`} className="block text-sm font-medium text-gray-700">
@@ -920,7 +846,7 @@ const Students: React.FC = () => {
               // Group students by category, then course, then year
               const grouped: Record<string, Record<string, Record<number, Student[]>>> = {};
               filteredStudents.forEach(student => {
-                const year = student.year || 0; // Handle null year
+                const year = student.year || 0; 
                 if (!grouped[student.category]) grouped[student.category] = {};
                 if (!grouped[student.category][student.course]) grouped[student.category][student.course] = {};
                 if (!grouped[student.category][student.course][year]) grouped[student.category][student.course][year] = [];
@@ -1379,12 +1305,13 @@ const Students: React.FC = () => {
                       id={`installment_amt_${index}`}
                       value={amt}
                       min={0}
-                      onChange={(e) => {
-                        const value = Number(e.target.value);
-                        const newAmts = [...(newStudent.installment_amt || [])];
-                        newAmts[index] = value;
-                        setNewStudent(prev => ({ ...prev, installment_amt: newAmts }));
-                      }}
+                    onChange={(e) => {
+                      const value = Number(e.target.value);
+                      const newAmts = [...(newStudent.installment_amt || [])];
+                      newAmts[index] = value;
+                      const paidFeeSum = newAmts.reduce((sum, current) => sum + current, 0);
+                      setNewStudent(prev => ({ ...prev, installment_amt: newAmts, paid_fee: paidFeeSum }));
+                    }}
                       className="input-field w-full"
                     />
                     <button
