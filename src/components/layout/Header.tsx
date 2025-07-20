@@ -25,12 +25,12 @@ const Header: React.FC<HeaderProps> = ({ openSidebar }) => {
             <div className="relative w-full max-w-2xl">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
               </div>
-              <div
+              {/* <div
                 className="w-full mt-2 h-3/4 rounded-md border border-gray-200 bg-gray-50 py-2 pl-10 pr-3 text-sm placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary text-center"
               >
-               {/* <img className='h-8 w-8' src="/src/assets/logo.png" alt=''/> */}
-                <span className='text-gray-700 h-3 w-3 text-2xl font-medium'>SK Tutorials</span>
-              </div>
+                <p className='text-gray-700 h-3 w-3 text-2xl font-medium'>SK Tutorials</p>
+               <img className='h-8 w-8' src="/src/assets/logo.png" alt=''/>
+              </div> */}
             </div>
           </div>
         </div>

@@ -298,8 +298,6 @@ const Students: React.FC = () => {
           student.installment_amt,
           student.installment_dates,
         ];
-        
-
         return row.join(',');
       }),
     ].join('\n');
@@ -860,7 +858,7 @@ const Students: React.FC = () => {
                     const year = Number(yearStr);
                     rows.push(
                       <tr key={`year-${category}-${course}-${year}`} className="bg-white">
-                        <td colSpan={8} className="px-8 py-1 font-medium text-sm text-gray-500 text-center">
+                        <td colSpan={11} className="px-8 py-1 mt-10 font-large bg-orange-200  text-3xl text-gray-500 text-center">
                           {category}  {course}  {year}
                         </td>
                       </tr>

@@ -27,7 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       <div className="flex h-16 items-center justify-between px-4 lg:justify-center">
         <div className="flex items-center">
           <img src="/src/assets/logo.png" alt="" className="size-20 mt-4"/>
-          <h1 className="ml-2 text-xl font-bold text-gray-900 font-quicksand" >SK Tutorials</h1>
+          <h1 className="ml-2 text-xl font-bold text-gray-900" >SK Tutorials</h1>
         </div>
         <button
           title='close'
