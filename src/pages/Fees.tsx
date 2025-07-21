@@ -759,7 +759,7 @@ const Fees: React.FC = () => {
                   <span className="text-sky-800 font-bold">{payment.payment_date}</span>
                 </td>
                 <td>{payment.payment_method}</td>
-                <td>₹{payment.amount.toLocaleString()}</td>
+                <td>₹{payment.amountPaid.toLocaleString()}</td>
                 <td className="font-medium">{payment.description}</td>
               </tr>
             ))}
