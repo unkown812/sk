@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Download } from 'lucide-react';
+import { Search, Filter, Download, XCircle } from 'lucide-react';
 import supabase from '../lib/supabase';
-
+import ReceiptModal from "../components/students/ReceiptModal";
+import FeeDueReminder from "../components/students/FeeDueReminder";
+import sendWhatsAppMessagesToDueStudents  from "../components/students/sendWhatsAppMessagesToDueStudents";
 interface Student {
   id?: number;
   name: string;
@@ -45,6 +47,7 @@ const Fees: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [feeSummary, setFeeSummary] = useState<FeeSummary[]>([]);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +56,8 @@ const Fees: React.FC = () => {
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
   const [paymentAmount, setPaymentAmount] = useState<string>('');
   const [feeStatus, setFeeStatus] = useState<string>('Unpaid');
+  const [dueStudents, setDueStudents] = useState<Student[]>([]);
+  const [receiptStudent, setReceiptStudent] = useState<Student | null>(null);
   const [paymentDate, setPaymentDate] = useState<string>(() => {
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -64,6 +69,8 @@ const Fees: React.FC = () => {
   const [submitLoading, setSubmitLoading] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [addError, setAddError] = useState<string | null>(null);
+  const [showFeeDueReminder, setShowFeeDueReminder] = useState(false);
+  const [adding, setAdding] = useState(false);
   const [feeAmount, setFeeAmount] = useState<number | null>(null);
   const [newStudent, setNewStudent] = useState<Student>({
     id: 0,
@@ -115,6 +122,23 @@ const Fees: React.FC = () => {
     } catch (error) {
       console.error('Error fetching payments:', error);
     }
+  };
+
+  const fetchStudents = async () => {
+    setLoading(true);
+    setError(null);
+    const { data, error } = await supabase.from('students').select('*');
+
+    if (error) {
+      setError(error.message);
+    } else {
+      const studentsWithDue = (data || []).map(student => ({
+        ...student,
+        due_amount: (student.total_fee || 0) - (student.paid_fee || 0),
+      }));
+      setStudents(studentsWithDue);
+    }
+    setLoading(false);
   };
 
   const fetchData = async () => {
@@ -554,164 +578,164 @@ const Fees: React.FC = () => {
       )}
 
       {/* Fee Update Modal */}
-            {showFeeModal && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-semibold">Update Fee for {newStudent.name}</h2>
-                    <button
-                      className="text-gray-500 hover:text-gray-700"
-                      onClick={() => setShowFeeModal(false)}
-                      aria-label="Close fee modal"
-                    >
-                      <XCircle className="h-6 w-6" />
-                    </button>
-                  </div>
-                  {addError && <div className="mb-4 text-red-600 font-medium">{addError}</div>}
-                  <div className="mt-6">
-                    <h3 className="text-lg font-semibold mb-2">Installments</h3>
-                    <button
-                      className="btn-primary mb-4"
-                      onClick={() => {
-                        if (!newStudent.installment_amt) newStudent.installment_amt = [];
-                        if (!newStudent.installment_dates) newStudent.installment_dates = [];
-                        if (!newStudent.installment_descriptions) newStudent.installment_descriptions = [];
-                        newStudent.installment_amt.push(0);
-                        newStudent.installment_dates.push('');
-                        newStudent.installment_descriptions.push(''); // Add empty description for new installment
-                        setNewStudent({ ...newStudent });
-                      }}
-                    >
-                      Add Installment
-                    </button>
-                    <button
-                      className="btn-primary mb-4 ml-4"
-                      onClick={async () => {
-                        if (!newStudent.id) {
-                          setAddError('Student ID is missing.');
-                          return;
-                        }
-                        setAdding(true);
-                        setAddError(null);
-                        try {
-                          const paidFeeSum = newStudent.installment_amt ? newStudent.installment_amt.reduce((sum, current) => sum + current, 0) : 0;
-                          const { error } = await supabase
-                            .from('students')
-                            .update({
-                              installment_amt: newStudent.installment_amt,
-                              installment_dates: newStudent.installment_dates,
-                              installment_descriptions: newStudent.installment_descriptions, // Save descriptions
-                              installments: newStudent.installment_amt.length,
-                              paid_fee: paidFeeSum,
-                            })
-                            .eq('id', newStudent.id);
-                          if (error) {
-                            setAddError(error.message);
-                          } else {
-                            fetchStudents();
-                          }
-                        } catch (err: unknown) {
-                          if (err instanceof Error) {
-                            setAddError(err.message);
-                          } else {
-                            setAddError('An unknown error occurred.');
-                          }
-                        }
-                        setAdding(false);
-                      }}
-                    >
-                      Save Installments
-                    </button>
-                    <div className="space-y-4 max-h-64 overflow-auto">
-                      {newStudent.installment_amt && newStudent.installment_amt.map((amt, index) => (
-                        <div key={index} className="border border-gray-300 rounded p-3">
-                          <label className="block text-sm font-medium mb-1" htmlFor={`installment_amt_${index}`}>
-                            Installment Amount (₹)
-                          </label>
-                          <input
-                            type="number"
-                            id={`installment_amt_${index}`}
-                            value={amt}
-                            min={0}
-                          onChange={(e) => {
-                            const value = Number(e.target.value);
-                            const newAmts = [...(newStudent.installment_amt || [])];
-                            newAmts[index] = value;
-                            const paidFeeSum = newAmts.reduce((sum, current) => sum + current, 0);
-                            setNewStudent(prev => ({ ...prev, installment_amt: newAmts, paid_fee: paidFeeSum }));
-                          }}
-                            className="input-field w-full"
-                          />
-                          <button
-                            className="btn-secondary mt-2"
-                            onClick={() => {
-                              setReceiptStudent({
-                                ...newStudent,
-                                paid_fee: amt,
-                                last_payment: newStudent.installment_dates ? newStudent.installment_dates[index] : '',
-                              });
-                              setShowReceiptModal(true);
-                            }}
-                          >
-                            Print Receipt
-                          </button>
-                          <label className="block text-sm font-medium mt-3 mb-1" htmlFor={`installment_date_${index}`}>
-                            Installment Date
-                          </label>
-                          <input
-                            type="date"
-                            id={`installment_date_${index}`}
-                            value={newStudent.installment_dates && newStudent.installment_dates[index] ? newStudent.installment_dates[index] : ''}
-                            onChange={(e) => {
-                              const newDates = newStudent.installment_dates ? [...newStudent.installment_dates] : [];
-                              newDates[index] = e.target.value;
-                              setNewStudent(prev => ({ ...prev, installment_dates: newDates }));
-                            }}
-                            className="input-field w-full"
-                          />
-                          <label className="block text-sm font-medium mt-3 mb-1" htmlFor={`installment_description_${index}`}>
-                            Installment Description
-                          </label>
-                          <input
-                            type="text"
-                            id={`installment_description_${index}`}
-                            value={newStudent.installment_descriptions && newStudent.installment_descriptions[index] ? newStudent.installment_descriptions[index] : ''}
-                            onChange={(e) => {
-                              const newDescriptions = newStudent.installment_descriptions ? [...newStudent.installment_descriptions] : [];
-                              newDescriptions[index] = e.target.value;
-                              setNewStudent(prev => ({ ...prev, installment_descriptions: newDescriptions }));
-                            }}
-                            className="input-field w-full"
-                            placeholder="Enter description"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-      
-            {/* Receipt Modal */}
-            {showReceiptModal && receiptStudent && (
-              <ReceiptModal
-                student={receiptStudent}
-                onClose={() => {
-                  setShowReceiptModal(false);
-                  setReceiptStudent(null);
+      {showFeeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Update Fee for {newStudent.name}</h2>
+              <button
+                className="text-gray-500 hover:text-gray-700"
+                onClick={() => setShowFeeModal(false)}
+                aria-label="Close fee modal"
+              >
+                <XCircle className="h-6 w-6" />
+              </button>
+            </div>
+            {addError && <div className="mb-4 text-red-600 font-medium">{addError}</div>}
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-2">Installments</h3>
+              <button
+                className="btn-primary mb-4"
+                onClick={() => {
+                  if (!newStudent.installment_amt) newStudent.installment_amt = [];
+                  if (!newStudent.installment_dates) newStudent.installment_dates = [];
+                  if (!newStudent.installment_descriptions) newStudent.installment_descriptions = [];
+                  newStudent.installment_amt.push(0);
+                  newStudent.installment_dates.push('');
+                  newStudent.installment_descriptions.push('');
+                  setNewStudent({ ...newStudent });
                 }}
-              />
-            )}
-      
-            {/* Fee Due Reminder Modal */}
-            {showFeeDueReminder && (
-              <FeeDueReminder
-                showFeeDueReminder={showFeeDueReminder}
-                dueStudents={dueStudents}
-                onDismiss={() => setShowFeeDueReminder(false)}
-                onSendWhatsAppMessages={sendWhatsAppMessagesToDueStudents}
-              />
-            )}
+              >
+                Add Installment
+              </button>
+              <button
+                className="btn-primary mb-4 ml-4"
+                onClick={async () => {
+                  if (!newStudent.id) {
+                    setAddError('Student ID is missing.');
+                    return;
+                  }
+                  setAdding(true);
+                  setAddError(null);
+                  try {
+                    const paidFeeSum = newStudent.installment_amt ? newStudent.installment_amt.reduce((sum, current) => sum + current, 0) : 0;
+                    const { error } = await supabase
+                      .from('students')
+                      .update({
+                        installment_amt: newStudent.installment_amt,
+                        installment_dates: newStudent.installment_dates,
+                        installment_descriptions: newStudent.installment_descriptions, // Save descriptions
+                        installments: newStudent.installment_amt.length,
+                        paid_fee: paidFeeSum,
+                      })
+                      .eq('id', newStudent.id);
+                    if (error) {
+                      setAddError(error.message);
+                    } else {
+                      fetchStudents();
+                    }
+                  } catch (err: unknown) {
+                    if (err instanceof Error) {
+                      setAddError(err.message);
+                    } else {
+                      setAddError('An unknown error occurred.');
+                    }
+                  }
+                  setAdding(false);
+                }}
+              >
+                Save Installments
+              </button>
+              <div className="space-y-4 max-h-64 overflow-auto">
+                {newStudent.installment_amt && newStudent.installment_amt.map((amt, index) => (
+                  <div key={index} className="border border-gray-300 rounded p-3">
+                    <label className="block text-sm font-medium mb-1" htmlFor={`installment_amt_${index}`}>
+                      Installment Amount (₹)
+                    </label>
+                    <input
+                      type="number"
+                      id={`installment_amt_${index}`}
+                      value={amt}
+                      min={0}
+                      onChange={(e) => {
+                        const value = Number(e.target.value);
+                        const newAmts = [...(newStudent.installment_amt || [])];
+                        newAmts[index] = value;
+                        const paidFeeSum = newAmts.reduce((sum, current) => sum + current, 0);
+                        setNewStudent(prev => ({ ...prev, installment_amt: newAmts, paid_fee: paidFeeSum }));
+                      }}
+                      className="input-field w-full"
+                    />
+                    <button
+                      className="btn-secondary mt-2"
+                      onClick={() => {
+                        setReceiptStudent({
+                          ...newStudent,
+                          paid_fee: amt,
+                          last_payment: newStudent.installment_dates ? newStudent.installment_dates[index] : '',
+                        });
+                        setShowReceiptModal(true);
+                      }}
+                    >
+                      Print Receipt
+                    </button>
+                    <label className="block text-sm font-medium mt-3 mb-1" htmlFor={`installment_date_${index}`}>
+                      Installment Date
+                    </label>
+                    <input
+                      type="date"
+                      id={`installment_date_${index}`}
+                      value={newStudent.installment_dates && newStudent.installment_dates[index] ? newStudent.installment_dates[index] : ''}
+                      onChange={(e) => {
+                        const newDates = newStudent.installment_dates ? [...newStudent.installment_dates] : [];
+                        newDates[index] = e.target.value;
+                        setNewStudent(prev => ({ ...prev, installment_dates: newDates }));
+                      }}
+                      className="input-field w-full"
+                    />
+                    <label className="block text-sm font-medium mt-3 mb-1" htmlFor={`installment_description_${index}`}>
+                      Installment Description
+                    </label>
+                    <input
+                      type="text"
+                      id={`installment_description_${index}`}
+                      value={newStudent.installment_descriptions && newStudent.installment_descriptions[index] ? newStudent.installment_descriptions[index] : ''}
+                      onChange={(e) => {
+                        const newDescriptions = newStudent.installment_descriptions ? [...newStudent.installment_descriptions] : [];
+                        newDescriptions[index] = e.target.value;
+                        setNewStudent(prev => ({ ...prev, installment_descriptions: newDescriptions }));
+                      }}
+                      className="input-field w-full"
+                      placeholder="Enter description"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Receipt Modal */}
+      {showReceiptModal && receiptStudent && (
+        <ReceiptModal
+          student={receiptStudent}
+          onClose={() => {
+            setShowReceiptModal(false);
+            setReceiptStudent(null);
+          }}
+        />
+      )}
+
+      {/* Fee Due Reminder Modal */}
+      {showFeeDueReminder && (
+        <FeeDueReminder
+          showFeeDueReminder={showFeeDueReminder}
+          dueStudents={dueStudents}
+          onDismiss={() => setShowFeeDueReminder(false)}
+          onSendWhatsAppMessages={sendWhatsAppMessagesToDueStudents}
+        />
+      )}
 
       <div className="table-container">
         <table className="data-table">
