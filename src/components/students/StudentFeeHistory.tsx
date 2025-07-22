@@ -26,7 +26,6 @@ const StudentFeeHistory: React.FC<StudentFeeHistoryProps> = ({ studentId }) => {
         setLoading(false);
       }
     };
-
     fetchFeeHistory();
   }, [studentId]);
 
@@ -36,7 +35,6 @@ const StudentFeeHistory: React.FC<StudentFeeHistoryProps> = ({ studentId }) => {
     .filter(fee => fee.status === 'Paid')
     .reduce((sum, fee) => sum + fee.amount, 0);
   const totalDue = totalAmount - totalPaid;
-
   if (loading) return <div>Loading fee history...</div>;
   if (error) return <div>Error: {error}</div>;
 

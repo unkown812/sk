@@ -160,7 +160,6 @@ const Fees: React.FC = () => {
         const totalAmount = student.total_fee || 0;
         const amountPaid = student.paid_fee || 0;
         const amountDue = totalAmount - amountPaid;
-
         let actualStatus: 'Paid' | 'Partial' | 'Unpaid';
         if (amountDue <= 0 && totalAmount > 0) {
           actualStatus = 'Paid';
@@ -169,7 +168,6 @@ const Fees: React.FC = () => {
         } else {
           actualStatus = 'Unpaid';
         }
-
         return {
           id: student.id!,
           name: student.name,
@@ -568,7 +566,7 @@ const Fees: React.FC = () => {
                       className="text-primary hover:text-primary-dark font-medium text-center"
                       onClick={(e) => {
                         e.stopPropagation();
-                        student && handleOpenFeeModal(student);
+                        // student && handleOpenFeeModal(student);
                       }}
                     >
                       {feeSummary.amountDue > 0 ? 'Update' : '	 - 	'}

@@ -121,6 +121,7 @@ const StudentAttendance: React.FC<StudentAttendanceProps> = ({ studentId }) => {
 
         <div className="relative">
           <select
+            title="selectYear"
             className="input-field appearance-none pr-8"
             value={selectedSubject}
             onChange={(e) => setSelectedSubject(e.target.value)}

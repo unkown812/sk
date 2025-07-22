@@ -12,17 +12,12 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import { UserProvider } from './context/UserContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-// import { StagewiseToolbar } from '@stagewise/toolbar-react';
-// import ReactPlugin from '@stagewise-plugins/react';
-// import { useEffect, useState } from 'react';
-
-
+import { useEffect, useState } from 'react';
 
 function App() {
   return (
     <UserProvider>
       <Router>
-        {/* <StagewiseToolbar config={{ plugins: [ReactPlugin] }} /> */}
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
