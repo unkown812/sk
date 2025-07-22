@@ -3,7 +3,7 @@ import { Search, Filter, Download, XCircle } from 'lucide-react';
 import supabase from '../lib/supabase';
 import ReceiptModal from "../components/students/ReceiptModal";
 import FeeDueReminder from "../components/students/FeeDueReminder";
-import sendWhatsAppMessagesToDueStudents  from "../components/students/sendWhatsAppMessagesToDueStudents";
+import sendWhatsAppMessagesToDueStudents from "../components/students/sendWhatsAppMessagesToDueStudents";
 
 interface Student {
   id?: number;
@@ -562,15 +562,17 @@ const Fees: React.FC = () => {
                       </span>
                     </td>
                     <td>
-                    <button
-                      className="text-primary hover:text-primary-dark font-medium text-center"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // student && handleOpenFeeModal(student);
-                      }}
-                    >
-                      {feeSummary.amountDue > 0 ? 'Update' : '	 - 	'}
-                    </button>
+                      <button
+                        className="text-primary hover:text-primary-dark font-medium text-center"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (student) {
+                            handleOpenFeeModal(student);
+                          }
+                        }}
+                      >
+                        {feeSummary.amountDue > 0 ? 'Update' : '	 - 	'}
+                      </button>
                     </td>
                   </tr>
                 );
@@ -634,7 +636,7 @@ const Fees: React.FC = () => {
                       .update({
                         installment_amt: newStudent.installment_amt,
                         installment_dates: newStudent.installment_dates,
-                        installment_descriptions: newStudent.installment_descriptions, 
+                        installment_descriptions: newStudent.installment_descriptions,
                         installments: newStudent.installment_amt.length,
                         paid_fee: paidFeeSum,
                       })
@@ -762,17 +764,17 @@ const Fees: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-                {payments.map((payment) => (
-                  <tr key={payment.id}>
-                    <td className="font-medium">{payment.student_name}</td>
-                    <td>
-                      <span className="text-sky-800 font-bold">{payment.payment_date}</span>
-                    </td>
-                    <td>{payment.payment_method}</td>
-                    <td>₹{payment.amount.toLocaleString()}</td>
-                    <td className="font-medium">{payment.description}</td>
-                  </tr>
-                ))}
+            {payments.map((payment) => (
+              <tr key={payment.id}>
+                <td className="font-medium">{payment.student_name}</td>
+                <td>
+                  <span className="text-sky-800 font-bold">{payment.payment_date}</span>
+                </td>
+                <td>{payment.payment_method}</td>
+                <td>₹{payment.amount.toLocaleString()}</td>
+                <td className="font-medium">{payment.description}</td>
+              </tr>
+            ))}
             {payments.length === 0 && (
               <tr>
                 <td colSpan={5} className="text-center py-4 text-gray-500">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PlusCircle, Search, Filter, Download, X } from 'lucide-react';
+import { PlusCircle} from 'lucide-react';
 import supabase from '../lib/supabase';
 
 
@@ -163,7 +163,6 @@ const Performance: React.FC = () => {
       setResultFormError('No students found for selected filters');
       return;
     }
-    // Validate marks for each student
     for (const student of filteredStudents) {
       const marksStr = resultStudentMarks[student.id];
       if (marksStr === undefined || marksStr === '') {
@@ -178,7 +177,6 @@ const Performance: React.FC = () => {
     }
     setResultSaving(true);
     try {
-      // Prepare insert data for each student
       const insertData = filteredStudents.map(student => {
         const marksNum = Number(resultStudentMarks[student.id]);
         const percentage = (marksNum / totalMarksNum) * 100;
@@ -208,7 +206,6 @@ const Performance: React.FC = () => {
       setResultSaving(false);
     }
   };
-
 
   const filteredExams = exams.filter(exam => {
     if (selectedCategory !== 'All' && exam.category !== selectedCategory) return false;
@@ -384,6 +381,7 @@ const Performance: React.FC = () => {
               className="input-field mb-2"
             />
             <select
+              title='Category'
               value={resultCategoryFilter}
               onChange={(e) => setResultCategoryFilter(e.target.value)}
               className="input-field mb-2"
@@ -394,6 +392,7 @@ const Performance: React.FC = () => {
               ))}
             </select>
             <select
+              title='Student'
               value={resultCourseFilter}
               onChange={(e) => setResultCourseFilter(e.target.value)}
               className="input-field mb-2"
@@ -404,6 +403,7 @@ const Performance: React.FC = () => {
               ))}
             </select>
             <select
+              title=''
               value={resultYearFilter}
               onChange={(e) => setResultYearFilter(e.target.value)}
               className="input-field mb-4"
@@ -452,7 +452,6 @@ const Performance: React.FC = () => {
         </div>
       )}
 
-      {/* Exams Table */}
       <div>
         <h2 className="text-xl font-semibold mb-4">Scheduled Exams</h2>
         <div className="table-container mb-6">
@@ -493,7 +492,6 @@ const Performance: React.FC = () => {
         </div>
       </div>
 
-      {/* Performance Table */}
       <div>
         <h2 className="text-xl font-semibold mb-4">Student Performance</h2>
         <div className="table-container">
