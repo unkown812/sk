@@ -4,6 +4,7 @@ import supabase from '../lib/supabase';
 import ReceiptModal from "../components/students/ReceiptModal";
 import FeeDueReminder from "../components/students/FeeDueReminder";
 import sendWhatsAppMessagesToDueStudents  from "../components/students/sendWhatsAppMessagesToDueStudents";
+
 interface Student {
   id?: number;
   name: string;
@@ -27,6 +28,7 @@ interface Student {
   installment_descriptions?: string[];
   enrollment_year: number[];
   subjects_enrolled: string[];
+  due_dates: string[];
 }
 
 interface FeeSummary {
@@ -43,6 +45,17 @@ interface FeeSummary {
   description: string;
 }
 
+interface Payment {
+  id: number;
+  student_id: number;
+  student_name: string;
+  amount: number;
+  payment_date: string;
+  payment_method: string;
+  description: string;
+  status: string;
+}
+
 const Fees: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
@@ -55,8 +68,6 @@ const Fees: React.FC = () => {
   const [showTable, setShowTable] = useState<boolean>(true);
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
   const [paymentAmount, setPaymentAmount] = useState<string>('');
-  const [feeStatus, setFeeStatus] = useState<string>('Unpaid');
-  const [dueStudents, setDueStudents] = useState<Student[]>([]);
   const [receiptStudent, setReceiptStudent] = useState<Student | null>(null);
   const [paymentDate, setPaymentDate] = useState<string>(() => {
     const today = new Date();
@@ -64,14 +75,12 @@ const Fees: React.FC = () => {
   });
   const [paymentMethod, setPaymentMethod] = useState<string>('cash');
   const [showFeeModal, setShowFeeModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [paymentDetails, setPaymentDetails] = useState<string>('');
   const [submitLoading, setSubmitLoading] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [addError, setAddError] = useState<string | null>(null);
   const [showFeeDueReminder, setShowFeeDueReminder] = useState(false);
-  const [adding, setAdding] = useState(false);
-  const [feeAmount, setFeeAmount] = useState<number | null>(null);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [newStudent, setNewStudent] = useState<Student>({
     id: 0,
     name: '',
@@ -95,19 +104,18 @@ const Fees: React.FC = () => {
     installment_descriptions: [],
     enrollment_year: [],
     subjects_enrolled: [],
+    due_dates: [],
   });
 
-  const handleFeeAction = (fee: FeeSummary) => {
-    if (fee.amountDue > 0) {
-      setSelectedStudentId(fee.id);
-      setPaymentAmount('');
-      setPaymentDate(new Date().toISOString().split('T')[0]);
-      setSubmitError(null);
-      setShowPaymentModal(true);
-    }
-  };
-
-  const [payments, setPayments] = useState<FeeSummary[]>([]);
+  // const handleFeeAction = (fee: FeeSummary) => {
+  //   if (fee.amountDue > 0) {
+  //     setSelectedStudentId(fee.id);
+  //     setPaymentAmount('');
+  //     setPaymentDate(new Date().toISOString().split('T')[0]);
+  //     setSubmitError(null);
+  //     setShowPaymentModal(true);
+  //   }
+  // };
 
   useEffect(() => {
     fetchData();
@@ -192,8 +200,8 @@ const Fees: React.FC = () => {
   };
 
   const handleOpenFeeModal = (student: Student) => {
-    // setNewStudent(student);
-    setFeeAmount(null);
+    setNewStudent(student);
+    // setFeeAmount(null);
     setAddError(null);
     setShowFeeModal(true);
   };
@@ -210,14 +218,14 @@ const Fees: React.FC = () => {
       setSubmitError('Please enter a valid payment amount.');
       return;
     }
-    if (!paymentDate) {
-      setSubmitError('Please select a payment date.');
-      return;
-    }
-    if (!paymentMethod) {
-      setSubmitError('Please select a payment method.');
-      return;
-    }
+    // if (!paymentDate) {
+    //   setSubmitError('Please select a payment date.');
+    //   return;
+    // }
+    // if (!paymentMethod) {
+    //   setSubmitError('Please select a payment method.');
+    //   return;
+    // }
     setSubmitLoading(true);
     try {
       const { data: studentData, error: studentError } = await supabase
@@ -244,17 +252,17 @@ const Fees: React.FC = () => {
           payment_date: paymentDate,
           payment_method: paymentMethod,
           description: paymentDetails,
-          status: feeStatus,
+          status: 'Paid',
         }]);
       if (insertError) throw insertError;
       await fetchData();
       setFeeSummary(prevFeeSummary => {
-        return prevFeeSummary.map(fee => {
-          if (fee.id === selectedStudentId) {
-            const newAmountPaid = fee.amountPaid + amountNum;
-            const newAmountDue = fee.totalAmount - newAmountPaid;
+        return prevFeeSummary.map(students => {
+          if (students.id === selectedStudentId) {
+            const newAmountPaid = students.amountPaid + amountNum;
+            const newAmountDue = students.totalAmount - newAmountPaid;
             let newStatus: 'Paid' | 'Partial' | 'Unpaid';
-            if (newAmountDue === 0 && fee.totalAmount > 0) {
+            if (newAmountDue === 0 && students.totalAmount > 0) {
               newStatus = 'Paid';
             } else if (newAmountPaid > 0) {
               newStatus = 'Partial';
@@ -262,13 +270,13 @@ const Fees: React.FC = () => {
               newStatus = 'Unpaid';
             }
             return {
-              ...fee,
+              ...students,
               amountPaid: newAmountPaid,
               amountDue: newAmountDue,
               status: newStatus,
             };
           }
-          return fee;
+          return students;
         });
       });
       setShowPaymentModal(false);
@@ -282,12 +290,12 @@ const Fees: React.FC = () => {
     setSubmitLoading(false);
   };
 
-  const filteredFeeSummary = feeSummary.filter(fee => {
+  const filteredFeeSummary = feeSummary.filter(student => {
     const matchesSearch =
-      fee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      fee.id.toString().includes(searchTerm) ||
-      fee.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'All' || fee.status === statusFilter;
+      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.id.toString().includes(searchTerm) ||
+      student.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'All' || student.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -534,37 +542,41 @@ const Fees: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredFeeSummary.map((fee) => (
-                <tr key={fee.id} onClick={() => handleFeeAction(fee)}>
-                  <td className="font-medium">{fee.name}</td>
-                  <td>
-                    <span className="text-sky-800  font-bold">{fee.category}</span>
-                  </td>
-                  <td>₹{fee.totalAmount.toLocaleString()}</td>
-                  <td className="text-green-700">₹{fee.amountPaid.toLocaleString()}</td>
-                  <td className="text-red-700">₹{fee.amountDue.toLocaleString()}</td>
-                  <td>
-                    <span
-                      className={`badge text-xs ${fee.status === 'Paid' ? 'text-green-700' :
-                        fee.status === 'Partial' ? 'text-orange-300' :
-                          'text-red-600'
-                        }`}
-                    >
-                      {fee.status}
-                    </span>
-                  </td>
-                  <td>
+              {filteredFeeSummary.map((feeSummary) => {
+                const student = students.find(s => s.id === feeSummary.id);
+                return (
+                  <tr key={feeSummary.id} onClick={() => student && handleOpenFeeModal(student)}>
+                    <td className="font-medium">{feeSummary.name}</td>
+                    <td>
+                      <span className="text-sky-800  font-bold">{feeSummary.category}</span>
+                    </td>
+                    <td>₹{feeSummary.totalAmount.toLocaleString()}</td>
+                    <td className="text-green-700">₹{feeSummary.amountPaid.toLocaleString()}</td>
+                    <td className="text-red-700">₹{feeSummary.amountDue.toLocaleString()}</td>
+                    <td>
+                      <span
+                        className={`badge text-xs ${feeSummary.status === 'Paid' ? 'text-green-700' :
+                          feeSummary.status === 'Partial' ? 'text-orange-300' :
+                            'text-red-600'
+                          }`}
+                      >
+                        {feeSummary.status}
+                      </span>
+                    </td>
+                    <td>
                     <button
                       className="text-primary hover:text-primary-dark font-medium text-center"
-                      onClick={() => {
-                        handleFeeAction(fee);
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        student && handleOpenFeeModal(student);
                       }}
                     >
-                      {fee.amountDue > 0 ? 'Update' : '	 - 	'}
+                      {feeSummary.amountDue > 0 ? 'Update' : '	 - 	'}
                     </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
               {filteredFeeSummary.length === 0 && (
                 <tr>
                   <td colSpan={9} className="text-center py-4 text-gray-500">
@@ -615,7 +627,7 @@ const Fees: React.FC = () => {
                     setAddError('Student ID is missing.');
                     return;
                   }
-                  setAdding(true);
+                  setLoading(true);
                   setAddError(null);
                   try {
                     const paidFeeSum = newStudent.installment_amt ? newStudent.installment_amt.reduce((sum, current) => sum + current, 0) : 0;
@@ -624,7 +636,7 @@ const Fees: React.FC = () => {
                       .update({
                         installment_amt: newStudent.installment_amt,
                         installment_dates: newStudent.installment_dates,
-                        installment_descriptions: newStudent.installment_descriptions, // Save descriptions
+                        installment_descriptions: newStudent.installment_descriptions, 
                         installments: newStudent.installment_amt.length,
                         paid_fee: paidFeeSum,
                       })
@@ -641,7 +653,7 @@ const Fees: React.FC = () => {
                       setAddError('An unknown error occurred.');
                     }
                   }
-                  setAdding(false);
+                  setLoading(false);
                 }}
               >
                 Save Installments
@@ -731,7 +743,7 @@ const Fees: React.FC = () => {
       {showFeeDueReminder && (
         <FeeDueReminder
           showFeeDueReminder={showFeeDueReminder}
-          dueStudents={dueStudents}
+          dueStudents={students}
           onDismiss={() => setShowFeeDueReminder(false)}
           onSendWhatsAppMessages={sendWhatsAppMessagesToDueStudents}
         />
@@ -752,17 +764,17 @@ const Fees: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {payments.map((payment) => (
-              <tr key={payment.id}>
-                <td className="font-medium">{payment.name}</td>
-                <td>
-                  <span className="text-sky-800 font-bold">{payment.payment_date}</span>
-                </td>
-                <td>{payment.payment_method}</td>
-                <td>₹{payment.amountPaid.toLocaleString()}</td>
-                <td className="font-medium">{payment.description}</td>
-              </tr>
-            ))}
+                {payments.map((payment) => (
+                  <tr key={payment.id}>
+                    <td className="font-medium">{payment.student_name}</td>
+                    <td>
+                      <span className="text-sky-800 font-bold">{payment.payment_date}</span>
+                    </td>
+                    <td>{payment.payment_method}</td>
+                    <td>₹{payment.amount.toLocaleString()}</td>
+                    <td className="font-medium">{payment.description}</td>
+                  </tr>
+                ))}
             {payments.length === 0 && (
               <tr>
                 <td colSpan={5} className="text-center py-4 text-gray-500">
