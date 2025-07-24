@@ -10,7 +10,7 @@ interface Student {
   name: string;
   category: string;
   course: string;
-  year: number | null;
+  year: number;
   semester: number | null;
   email: string;
   phone: string;
@@ -63,7 +63,7 @@ const Students: React.FC = () => {
     name: "",
     category: "",
     course: "",
-    year: null,
+    year: 0,
     semester: null,
     email: "",
     phone: "",
@@ -135,14 +135,32 @@ const Students: React.FC = () => {
     });
   };
 
-  const handleSaveEditStudent = async () => {
+const handleSaveEditStudent = async () => {
     if (!editStudent) return;
     setAdding(true);
     setAddError(null);
     try {
+      // Sanitize year and semester to be number or null
+      const sanitizedYear =
+        typeof editStudent.year === "number" ? editStudent.year : null;
+      const sanitizedSemester =
+        typeof editStudent.semester === "number" ? editStudent.semester : null;
+
+      // Calculate sum of installment_amt array to update paid_fee
+      const paidFeeSum = editStudent.installment_amt
+        ? editStudent.installment_amt.reduce((sum, val) => sum + val, 0)
+        : 0;
+
+      const studentToUpdate = {
+        ...editStudent,
+        year: sanitizedYear,
+        semester: sanitizedSemester,
+        paid_fee: paidFeeSum,
+      };
+
       const { error } = await supabase
         .from("students")
-        .update(editStudent)
+        .update(studentToUpdate)
         .eq("id", editStudent.id);
 
       if (error) {
@@ -210,12 +228,14 @@ const Students: React.FC = () => {
         ...prev,
         semester: Number(value),
       }));
-    } else if (name === "due_date") {
-      setNewStudent((prev) => ({
-        ...prev,
-        due_date: Number(value),
-      }));
-    } else {
+    }
+    // else if (name === 'due_date') {
+    //   setNewStudent((prev) => ({
+    //     ...prev,
+    //     due_date: Number(value),
+    //   }));
+    // }
+    else {
       setNewStudent((prev) => ({
         ...prev,
         [name]:
@@ -230,6 +250,11 @@ const Students: React.FC = () => {
       setEditStudent(student);
       setShowEditModal(true);
     }
+  };
+
+  const openReceiptModal = (student: Student) => {
+    setReceiptStudent(student);
+    setShowReceiptModal(true);
   };
 
   const sendWhatsAppMessage = async (phone: string, message: string) => {
@@ -398,6 +423,7 @@ const Students: React.FC = () => {
   }, [selectedCategory]);
 
   const feeStatuses = ["Paid", "Partial", "Unpaid"];
+
   const filteredStudents = students.filter((student) => {
     const matchesSearch =
       student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -466,19 +492,28 @@ const Students: React.FC = () => {
         setAdding(false);
         return;
       }
-
+      const sanitizedYear =
+        typeof newStudent.year === "number" ? newStudent.year : null;
+      const sanitizedSemester =
+        typeof newStudent.semester === "number" ? newStudent.semester : null;
       const totalFeeNum = Number(newStudent.total_fee);
       const installmentsNum = Math.min(
         Math.max(Number(newStudent.installments), 1),
         24
       );
+      const installmentAmtNum =
+        installmentsNum > 0 ? totalFeeNum / installmentsNum : 0;
       const dueAmountNum = totalFeeNum - (newStudent.paid_fee || 0);
-
       const studentToInsert = {
         ...newStudent,
+        year: sanitizedYear,
+        semester: sanitizedSemester,
         total_fee: totalFeeNum,
         due_amount: dueAmountNum,
-        semester: newStudent.semester,
+        installments: installmentsNum,
+        installment_amt: installmentAmtNum,
+        enrollment_year: [enrollmentYearStart, enrollmentYearEnd],
+        installment_dates: newStudent.installment_dates,
       };
 
       const { error } = await supabase
@@ -507,12 +542,70 @@ const Students: React.FC = () => {
     setShowFeeModal(true);
   };
 
-  // update({ paid_fee: updatedPaidFee, fee_status: updatedFeeStatus, due_amount: updatedDueAmount, last_payment: new Date().toISOString().split('T')[0] })
-  //     .eq('id', newStudent.id);
+  const handleFeeAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFeeAmount(Number(e.target.value));
+  };
 
-  // const getRemainingFee = (student: Student) => {
-  //   return (student.total_fee || 0) - (student.paid_fee || 0);
-  // };
+  const handleFeeUpdate = async () => {
+    if (!feeAmount || feeAmount <= 0) {
+      setAddError("Please enter a positive amount.");
+      return;
+    }
+    const updatedPaidFee = (newStudent.paid_fee || 0) + feeAmount;
+    const updatedFeeStatus =
+      updatedPaidFee >= (newStudent.total_fee || 0) ? "Paid" : "Partial";
+    const updatedDueAmount = (newStudent.total_fee || 0) - updatedPaidFee;
+    setAdding(true);
+    setAddError(null);
+    try {
+      const { error: updateError } = await supabase
+        .from("students")
+        .update({
+          paid_fee: updatedPaidFee,
+          fee_status: updatedFeeStatus,
+          due_amount: updatedDueAmount,
+          last_payment: new Date().toISOString().split("T")[0],
+        })
+        .eq("id", newStudent.id);
+      if (updateError) {
+        setAddError(updateError.message);
+        setAdding(false);
+        return;
+      }
+      const paymentRecord = {
+        name: newStudent.name,
+        category: newStudent.category,
+        course: newStudent.course,
+        totalAmount: newStudent.total_fee || 0,
+        amountPaid: feeAmount,
+        amountDue: updatedDueAmount,
+        payment_date: new Date().toISOString().split("T")[0],
+        payment_method: "Installment",
+        status: updatedFeeStatus,
+        description: "Installment payment",
+      };
+      const { error: insertError } = await supabase
+        .from("payments")
+        .insert([paymentRecord]);
+      if (insertError) {
+        setAddError(insertError.message);
+      } else {
+        setShowFeeModal(false);
+        fetchStudents();
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setAddError(err.message);
+      } else {
+        setAddError("An unknown error occurred.");
+      }
+    }
+    setAdding(false);
+  };
+
+  const getRemainingFee = (student: Student) => {
+    return (student.total_fee || 0) - (student.paid_fee || 0);
+  };
 
   return (
     <div className="space-6">
@@ -778,7 +871,7 @@ const Students: React.FC = () => {
               {editStudent.installments && editStudent.installments > 0 && (
                 <div className="mt-4">
                   <h3 className="text-md font-semibold mb-2">
-                    Installment Dates
+                    Installment Due Dates
                   </h3>
                   {[...Array(editStudent.installments)].map((_, index) => (
                     <div key={index} className="mb-2">
@@ -977,7 +1070,9 @@ const Students: React.FC = () => {
           Showing {filteredStudents.length} out of {students.length} students
         </span>
       </div>
+
       {/* Students Table */}
+
       <div className="overflow-x-scroll">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -1019,13 +1114,12 @@ const Students: React.FC = () => {
           </thead>
           <tbody className="divide-y divide-gray-200">
             {(() => {
-              // Group students by category, then course, then year
               const grouped: Record<
                 string,
                 Record<string, Record<number, Student[]>>
               > = {};
               filteredStudents.forEach((student) => {
-                const year = student.year || 0;
+                const year = student.year || 0; // Handle null year
                 if (!grouped[student.category]) grouped[student.category] = {};
                 if (!grouped[student.category][student.course])
                   grouped[student.category][student.course] = {};
@@ -1048,7 +1142,7 @@ const Students: React.FC = () => {
                         >
                           <td
                             colSpan={11}
-                            className="px-8 py-1 mt-10 font-large bg-orange-200  text-3xl text-gray-500 text-center"
+                            className="px-8 py-1 font-medium text-2xl text-gray-500 bg-orange-100 text-center "
                           >
                             {category} {course} {year}
                           </td>
@@ -1162,6 +1256,15 @@ const Students: React.FC = () => {
                     });
                 });
               });
+              if (filteredStudents.length === 0) {
+                return (
+                  <tr>
+                    <td colSpan={11} className="text-center py-4 text-gray-500">
+                      No students found.
+                    </td>
+                  </tr>
+                );
+              }
               return rows;
             })()}
           </tbody>
@@ -1466,7 +1569,7 @@ const Students: React.FC = () => {
               {newStudent.installments && newStudent.installments > 0 && (
                 <div className="mt-4">
                   <h3 className="text-md font-semibold mb-2">
-                    Installment Dates
+                    Installment Due Dates
                   </h3>
                   {[...Array(newStudent.installments)].map((_, index) => (
                     <div key={index} className="mb-2">
@@ -1474,38 +1577,8 @@ const Students: React.FC = () => {
                         htmlFor={`installment_date_${index}`}
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Installment {index + 1} Dues
+                        Installment {index + 1} Due Date
                       </label>
-
-                      <input
-                        type="date"
-                        id={`installment_date_${index}`}
-                        value={
-                          newStudent.due_dates && newStudent.due_dates[index]
-                            ? newStudent.due_dates[index]
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const newDates = newStudent.due_dates
-                            ? [...newStudent.due_dates]
-                            : [];
-                          newDates[index] = e.target.value;
-                          setNewStudent((prev) => ({
-                            ...prev,
-                            due_dates: newDates,
-                          }));
-                        }}
-                        className="input-field mt-1"
-                        required
-                      />
-
-                      <label
-                        htmlFor={`installment_date_${index}`}
-                        className="block text-sm font-medium text-gray-700"
-                      >
-                        Installment {index + 1} Date
-                      </label>
-
                       <input
                         type="date"
                         id={`installment_date_${index}`}
@@ -1571,6 +1644,35 @@ const Students: React.FC = () => {
             {addError && (
               <div className="mb-4 text-red-600 font-medium">{addError}</div>
             )}
+            {/* <div className="space-y-4">
+              <p>Total Fee: ₹{newStudent.total_fee}</p>
+              <p>Paid Fee: ₹{newStudent.paid_fee}</p>
+              <p>Remaining Fee: ₹{getRemainingFee(newStudent)}</p>
+              {(newStudent.fee_status === 'Unpaid' || newStudent.fee_status === 'Partial') && (
+                <div>
+                  <label htmlFor="feeAmount" className="block text-sm font-medium text-gray-700">
+                    Add Amount (₹)
+                  </label>
+                  <input
+                    type="number"
+                    id="feeAmount"
+                    min={0}
+                    value={feeAmount ?? ''}
+                    onChange={handleFeeAmountChange}
+                    className="input-field mt-1"
+                    placeholder="Enter amount to add"
+                  />
+                </div>
+              )}
+            </div> */}
+            {/* <div className="mt-6 flex justify-end space-x-4">
+              <button className="btn-secondary" onClick={() => setShowFeeModal(false)} disabled={adding}>Cancel</button>
+              {(newStudent.fee_status === 'Unpaid' || newStudent.fee_status === 'Partial') && (
+                <button className="btn-primary" onClick={handleFeeUpdate} disabled={adding}>
+                  {adding ? 'Saving...' : 'Save'}
+                </button>
+              )}
+            </div> */}
             <div className="mt-6">
               <h3 className="text-lg font-semibold mb-2">Installments</h3>
               <button
@@ -1600,12 +1702,6 @@ const Students: React.FC = () => {
                   setAdding(true);
                   setAddError(null);
                   try {
-                    const paidFeeSum = newStudent.installment_amt
-                      ? newStudent.installment_amt.reduce(
-                          (sum, current) => sum + current,
-                          0
-                        )
-                      : 0;
                     const { error } = await supabase
                       .from("students")
                       .update({
@@ -1614,7 +1710,6 @@ const Students: React.FC = () => {
                         installment_descriptions:
                           newStudent.installment_descriptions,
                         installments: newStudent.installment_amt.length,
-                        paid_fee: paidFeeSum,
                       })
                       .eq("id", newStudent.id);
                     if (error) {
@@ -1658,14 +1753,9 @@ const Students: React.FC = () => {
                             ...(newStudent.installment_amt || []),
                           ];
                           newAmts[index] = value;
-                          const paidFeeSum = newAmts.reduce(
-                            (sum, current) => sum + current,
-                            0
-                          );
                           setNewStudent((prev) => ({
                             ...prev,
                             installment_amt: newAmts,
-                            paid_fee: paidFeeSum,
                           }));
                         }}
                         className="input-field w-full"
@@ -1770,4 +1860,4 @@ const Students: React.FC = () => {
     </div>
   );
 };
-export default Students;
+export default Students

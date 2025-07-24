@@ -7,11 +7,17 @@ const supabase = createClient(
   process.env.VITE_SUPABASE_ANON_KEY!
 );
 
+interface StudentFees {
+  total_fee?: number;
+  paid_fee?: number;
+  installment_amt?: number[];
+}
+
 function StudentFeesComponent() {
   const [studentId, setStudentId] = useState('');
   const [installmentAmount, setInstallmentAmount] = useState('');
-  const [studentFees, setStudentFees] = useState(null);
-  const [error, setError] = useState(null);
+  const [studentFees, setStudentFees] = useState<StudentFees | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch Student Fees
   const fetchStudentFees = async () => {
@@ -26,8 +32,12 @@ function StudentFeesComponent() {
       if (error) throw error;
       setStudentFees(data);
       setError(null);
-    } catch (err) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred.");
+      }
       setStudentFees(null);
     }
   };
@@ -47,27 +57,35 @@ function StudentFeesComponent() {
       setStudentFees(data);
       setInstallmentAmount('');
       setError(null);
-    } catch (err) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred.");
+      }
     }
   };
 
   // Update Total Fees
-  const updateTotalFees = async (newTotalFees) => {
+  const updateTotalFees = async (newTotalFees: number) => {
     try {
       const { data, error } = await supabase.functions.invoke('student-fees', {
         body: JSON.stringify({
           method: 'PUT',
           studentId: studentId,
-          totalFees: newTotalFees
+          total_fee: newTotalFees
         })
       });
 
       if (error) throw error;
       setStudentFees(data);
       setError(null);
-    } catch (err) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred.");
+      }
     }
   };
 
@@ -105,8 +123,8 @@ function StudentFeesComponent() {
       {studentFees && (
         <div>
           <h3>Student Fees Details</h3>
-          <p>Total Fees: {studentFees.total_fees}</p>
-          <p>Paid Fees: {studentFees.paid_fees}</p>
+          <p>Total Fee: {studentFees.total_fee}</p>
+          <p>Paid Fee: {studentFees.paid_fee}</p>
           <p>Installments: {studentFees.installment_amt?.join(', ')}</p>
         </div>
       )}

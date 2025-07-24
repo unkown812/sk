@@ -7,7 +7,7 @@ import Attendance from './pages/Attendance';
 import Performance from './pages/Performance';
 import Courses from './pages/Courses';
 import Settings from './pages/Settings';
-import StudentDetail from './pages/StudentDetail';
+// import StudentDetail from './pages/StudentDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { UserProvider } from './context/UserContext';
@@ -24,7 +24,7 @@ function App() {
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="students" element={<Students />} />
-            <Route path="students/:id" element={<StudentDetail />} />
+            {/* <Route path="students/:id" element={<StudentDetail />} /> */}
             <Route path="fees" element={<Fees />} />
             <Route path="attendance" element={<Attendance />} />
             <Route path="performance" element={<Performance />} />
