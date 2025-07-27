@@ -4,57 +4,7 @@ import supabase from "../lib/supabase";
 import ReceiptModal from "../components/students/ReceiptModal";
 import FeeDueReminder from "../components/students/FeeDueReminder";
 import sendWhatsAppMessagesToDueStudents from "../components/students/sendWhatsAppMessagesToDueStudents";
-
-interface Student {
-  id?: number;
-  name: string;
-  category: string;
-  course: string;
-  year: number | null;
-  semester: number | null;
-  email: string;
-  phone: string;
-  enrollment_date: string;
-  created_at: string;
-  fee_status: string;
-  total_fee: number | null;
-  paid_fee: number | null;
-  due_amount: number | null;
-  last_payment: string;
-  birthday: string;
-  installment_amt: number[];
-  installments: number | null;
-  installment_dates?: string[];
-  installment_descriptions?: string[];
-  enrollment_year: number[];
-  subjects_enrolled: string[];
-  due_dates: string[];
-}
-
-interface FeeSummary {
-  id: number;
-  name: string;
-  category: string;
-  course: string;
-  totalAmount: number;
-  amountPaid: number;
-  amountDue: number;
-  payment_date: string;
-  payment_method: string;
-  status: "Paid" | "Partial" | "Unpaid";
-  description: string;
-}
-
-interface Payment {
-  id: number;
-  student_id: number;
-  student_name: string;
-  amount: number;
-  payment_date: string;
-  payment_method: string;
-  description: string;
-  status: string;
-}
+import { Student, FeeSummary, Payment } from "../types/types";
 
 const Fees: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -88,7 +38,7 @@ const Fees: React.FC = () => {
     name: "",
     category: "",
     course: "",
-    year: null,
+    year: 0,
     semester: null,
     email: "",
     phone: "",
@@ -534,8 +484,8 @@ const Fees: React.FC = () => {
               <p className="text-sm text-green-700 text-center">
                 {totalFees > 0
                   ? `${Math.round(
-                      (totalCollected / totalFees) * 100
-                    )}% of total`
+                    (totalCollected / totalFees) * 100
+                  )}% of total`
                   : "0% of total"}
               </p>
             </div>
@@ -681,13 +631,12 @@ const Fees: React.FC = () => {
                                 </td>
                                 <td>
                                   <span
-                                    className={`badge text-xs ${
-                                      feeSummary.status === "Paid"
+                                    className={`badge text-xs ${feeSummary.status === "Paid"
                                         ? "text-green-700"
                                         : feeSummary.status === "Partial"
-                                        ? "text-orange-300"
-                                        : "text-red-600"
-                                    }`}
+                                          ? "text-orange-300"
+                                          : "text-red-600"
+                                      }`}
                                   >
                                     {feeSummary.status}
                                   </span>
@@ -783,9 +732,9 @@ const Fees: React.FC = () => {
                   try {
                     const paidFeeSum = newStudent.installment_amt
                       ? newStudent.installment_amt.reduce(
-                          (sum, current) => sum + current,
-                          0
-                        )
+                        (sum, current) => sum + current,
+                        0
+                      )
                       : 0;
                     const { error } = await supabase
                       .from("students")
@@ -877,7 +826,7 @@ const Fees: React.FC = () => {
                         id={`installment_date_${index}`}
                         value={
                           newStudent.installment_dates &&
-                          newStudent.installment_dates[index]
+                            newStudent.installment_dates[index]
                             ? newStudent.installment_dates[index]
                             : ""
                         }
@@ -904,7 +853,7 @@ const Fees: React.FC = () => {
                         id={`installment_description_${index}`}
                         value={
                           newStudent.installment_descriptions &&
-                          newStudent.installment_descriptions[index]
+                            newStudent.installment_descriptions[index]
                             ? newStudent.installment_descriptions[index]
                             : ""
                         }

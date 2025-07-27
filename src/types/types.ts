@@ -23,3 +23,29 @@ export interface Student {
   subjects_enrolled: string[];
   due_dates?: string[];
 }
+
+export interface FeeSummary {
+  id: number;
+  name: string;
+  category: string;
+  course: string;
+  totalAmount: number;
+  amountPaid: number;
+  amountDue: number;
+  payment_date: string;
+  payment_method: string;
+  status: "Paid" | "Partial" | "Unpaid";
+  description: string;
+}
+
+export interface Payment {
+  id: number;
+  student_id: number;
+  student_name: string;
+  amount: number;
+  payment_date: string;
+  payment_method: string;
+  description: string;
+  status: string;
+}
+

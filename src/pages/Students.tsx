@@ -4,32 +4,7 @@ import supabase from "../lib/supabase";
 import "../index.css";
 import FeeDueReminder from "../components/students/FeeDueReminder";
 import ReceiptModal from "../components/students/ReceiptModal";
-
-interface Student {
-  id?: number;
-  name: string;
-  category: string;
-  course: string;
-  year: number;
-  semester: number | null;
-  email: string;
-  phone: string;
-  enrollment_date: string;
-  created_at: string;
-  fee_status: string;
-  total_fee: number | null;
-  paid_fee: number | null;
-  due_amount: number | null;
-  last_payment: string;
-  birthday: string | null;
-  installment_amt: number[];
-  installments: number | null;
-  installment_dates?: string[] | null;
-  installment_descriptions?: string[];
-  enrollment_year: number[] | null;
-  subjects_enrolled: string[] | null;
-  due_dates?: string[] | null;
-}
+import type { Student } from '../types/types';
 
 const Students: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -55,7 +30,6 @@ const Students: React.FC = () => {
   const [enrollmentYearEnd, setEnrollmentYearEnd] = useState<number | "">("");
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
-  const [feeAmount, setFeeAmount] = useState<number | null>(null);
   const [newStudent, setNewStudent] = useState<Student>({
     id: 0,
     name: "",

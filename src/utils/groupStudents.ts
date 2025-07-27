@@ -1,4 +1,4 @@
-import { Student } from '../types/student';
+import { Student } from '../types/types';
 
 interface GroupedStudents {
   [category: string]: {
