@@ -21,14 +21,14 @@ interface Student {
   paid_fee: number | null;
   due_amount: number | null;
   last_payment: string;
-  birthday: string;
+  birthday: string | null;
   installment_amt: number[];
   installments: number | null;
-  installment_dates?: string[];
+  installment_dates?: string[] | null;
   installment_descriptions?: string[];
-  enrollment_year: number[];
-  subjects_enrolled: string[];
-  due_dates: string[];
+  enrollment_year: number[] | null;
+  subjects_enrolled: string[] | null;
+  due_dates?: string[] | null;
 }
 
 const Students: React.FC = () => {
@@ -51,9 +51,7 @@ const Students: React.FC = () => {
   const [dueStudents, setDueStudents] = useState<Student[]>([]);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [receiptStudent, setReceiptStudent] = useState<Student | null>(null);
-  const [enrollmentYearStart, setEnrollmentYearStart] = useState<number | "">(
-    ""
-  );
+  const [enrollmentYearStart, setEnrollmentYearStart] = useState<number | "">("");
   const [enrollmentYearEnd, setEnrollmentYearEnd] = useState<number | "">("");
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
@@ -86,31 +84,16 @@ const Students: React.FC = () => {
 
   useEffect(() => {
     const today = new Date();
-    if (today.getDate() === 1) {
-      const currentMonth = today.getMonth();
-      const currentYear = today.getFullYear();
-      const studentsWithDue = students.filter((student) => {
-        if (!student.due_amount || student.due_amount <= 0) return false;
-        if (
-          !student.installment_dates ||
-          student.installment_dates.length === 0
-        )
-          return true;
-        return student.installment_dates.some((dateStr) => {
-          if (!dateStr) return false;
-          const date = new Date(dateStr);
-          return (
-            date.getFullYear() < currentYear ||
-            (date.getFullYear() === currentYear &&
-              date.getMonth() <= currentMonth)
-          );
-        });
-      });
+    const todayStr = today.toISOString().split("T")[0];
+    const studentsWithDue = students.filter((student) => {
+      if (!student.due_amount || student.due_amount <= 0) return false;
+      if (!student.due_dates || student.due_dates.length === 0) return false;
+      return student.due_dates.some((dateStr) => dateStr === todayStr);
+    });
 
-      if (studentsWithDue.length > 0) {
-        setDueStudents(studentsWithDue);
-        setShowFeeDueReminder(true);
-      }
+    if (studentsWithDue.length > 0) {
+      setDueStudents(studentsWithDue);
+      setShowFeeDueReminder(true);
     }
   }, [students]);
 
@@ -125,37 +108,49 @@ const Students: React.FC = () => {
         ...prev,
         [name]:
           name === "paid_fee" ||
-          name === "due_date" ||
-          name === "installments" ||
-          name === "year" ||
-          name === "semester"
+            name === "due_date" ||
+            name === "installments" ||
+            name === "year" ||
+            name === "semester"
             ? Number(value)
             : value,
       } as Student;
     });
   };
 
-const handleSaveEditStudent = async () => {
+  const handleSaveEditStudent = async () => {
     if (!editStudent) return;
     setAdding(true);
     setAddError(null);
     try {
-      // Sanitize year and semester to be number or null
       const sanitizedYear =
         typeof editStudent.year === "number" ? editStudent.year : null;
       const sanitizedSemester =
         typeof editStudent.semester === "number" ? editStudent.semester : null;
-
-      // Calculate sum of installment_amt array to update paid_fee
       const paidFeeSum = editStudent.installment_amt
         ? editStudent.installment_amt.reduce((sum, val) => sum + val, 0)
         : 0;
+
+      // Ensure due_dates array length matches installments
+      let dueDates = editStudent.due_dates || [];
+      if (editStudent.installments) {
+        while (dueDates.length < editStudent.installments) {
+          dueDates.push("");
+        }
+        if (dueDates.length > editStudent.installments) {
+          dueDates = dueDates.slice(0, editStudent.installments);
+        }
+      }
+      // Sanitize dueDates to replace empty strings with null
+      // To satisfy TypeScript, cast to string[] after filtering nulls
+      dueDates = dueDates.map((date) => (date === "" ? null : date)).filter((d): d is string => d !== null);
 
       const studentToUpdate = {
         ...editStudent,
         year: sanitizedYear,
         semester: sanitizedSemester,
         paid_fee: paidFeeSum,
+        due_dates: dueDates,
       };
 
       const { error } = await supabase
@@ -210,13 +205,23 @@ const handleSaveEditStudent = async () => {
           newInstallmentDates.push("");
         }
       }
+
+      let newDueDates = Array.isArray(newStudent.due_dates)
+        ? [...newStudent.due_dates]
+        : [];
+      if (newDueDates.length > installmentsNum) {
+        newDueDates = newDueDates.slice(0, installmentsNum);
+      } else {
+        while (newDueDates.length < installmentsNum) {
+          newDueDates.push("");
+        }
+      }
       setNewStudent((prev) => ({
         ...prev,
         installments: installmentsNum,
-        installment_amt: Array(installmentsNum).fill(
-          (newStudent.total_fee || 0) / installmentsNum
-        ),
+        installment_amt: Array(installmentsNum).fill((newStudent.total_fee || 0) / installmentsNum),
         installment_dates: newInstallmentDates,
+        due_dates: newDueDates,
       }));
     } else if (name === "year") {
       setNewStudent((prev) => ({
@@ -252,10 +257,6 @@ const handleSaveEditStudent = async () => {
     }
   };
 
-  const openReceiptModal = (student: Student) => {
-    setReceiptStudent(student);
-    setShowReceiptModal(true);
-  };
 
   const sendWhatsAppMessage = async (phone: string, message: string) => {
     try {
@@ -504,6 +505,15 @@ const handleSaveEditStudent = async () => {
       const installmentAmtNum =
         installmentsNum > 0 ? totalFeeNum / installmentsNum : 0;
       const dueAmountNum = totalFeeNum - (newStudent.paid_fee || 0);
+      // Sanitize installment_dates and due_dates to replace empty strings with null before insert
+      // Filter out nulls to satisfy TypeScript string[] type
+      const sanitizedInstallmentDates = (newStudent.installment_dates || [])
+        .map((date) => (date === "" ? null : date))
+        .filter((d): d is string => d !== null);
+      const sanitizedDueDates = (newStudent.due_dates || [])
+        .map((date) => (date === "" ? null : date))
+        .filter((d): d is string => d !== null);
+
       const studentToInsert = {
         ...newStudent,
         year: sanitizedYear,
@@ -513,7 +523,8 @@ const handleSaveEditStudent = async () => {
         installments: installmentsNum,
         installment_amt: installmentAmtNum,
         enrollment_year: [enrollmentYearStart, enrollmentYearEnd],
-        installment_dates: newStudent.installment_dates,
+        installment_dates: sanitizedInstallmentDates,
+        due_dates: sanitizedDueDates,
       };
 
       const { error } = await supabase
@@ -542,70 +553,7 @@ const handleSaveEditStudent = async () => {
     setShowFeeModal(true);
   };
 
-  const handleFeeAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFeeAmount(Number(e.target.value));
-  };
-
-  const handleFeeUpdate = async () => {
-    if (!feeAmount || feeAmount <= 0) {
-      setAddError("Please enter a positive amount.");
-      return;
-    }
-    const updatedPaidFee = (newStudent.paid_fee || 0) + feeAmount;
-    const updatedFeeStatus =
-      updatedPaidFee >= (newStudent.total_fee || 0) ? "Paid" : "Partial";
-    const updatedDueAmount = (newStudent.total_fee || 0) - updatedPaidFee;
-    setAdding(true);
-    setAddError(null);
-    try {
-      const { error: updateError } = await supabase
-        .from("students")
-        .update({
-          paid_fee: updatedPaidFee,
-          fee_status: updatedFeeStatus,
-          due_amount: updatedDueAmount,
-          last_payment: new Date().toISOString().split("T")[0],
-        })
-        .eq("id", newStudent.id);
-      if (updateError) {
-        setAddError(updateError.message);
-        setAdding(false);
-        return;
-      }
-      const paymentRecord = {
-        name: newStudent.name,
-        category: newStudent.category,
-        course: newStudent.course,
-        totalAmount: newStudent.total_fee || 0,
-        amountPaid: feeAmount,
-        amountDue: updatedDueAmount,
-        payment_date: new Date().toISOString().split("T")[0],
-        payment_method: "Installment",
-        status: updatedFeeStatus,
-        description: "Installment payment",
-      };
-      const { error: insertError } = await supabase
-        .from("payments")
-        .insert([paymentRecord]);
-      if (insertError) {
-        setAddError(insertError.message);
-      } else {
-        setShowFeeModal(false);
-        fetchStudents();
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setAddError(err.message);
-      } else {
-        setAddError("An unknown error occurred.");
-      }
-    }
-    setAdding(false);
-  };
-
-  const getRemainingFee = (student: Student) => {
-    return (student.total_fee || 0) - (student.paid_fee || 0);
-  };
+  // Removed unused functions to fix eslint errors
 
   return (
     <div className="space-6">
@@ -879,14 +827,14 @@ const handleSaveEditStudent = async () => {
                         htmlFor={`installment_date_${index}`}
                         className="block text-sm font-medium text-gray-700"
                       >
-                        Installment {index + 1} Due Date
+                        Installment {index + 1} Date
                       </label>
                       <input
                         type="date"
                         id={`installment_date_${index}`}
                         value={
                           editStudent.installment_dates &&
-                          editStudent.installment_dates[index]
+                            editStudent.installment_dates[index]
                             ? editStudent.installment_dates[index]
                             : ""
                         }
@@ -908,6 +856,42 @@ const handleSaveEditStudent = async () => {
                       />
                     </div>
                   ))}
+                  <h3 className="text-md font-semibold mb-2 mt-6">
+                    Due Dates
+                  </h3>
+                  {[...Array(editStudent.installments)].map((_, index) => (
+                    <div key={`due_date_${index}`} className="mb-2">
+                      <label
+                        htmlFor={`due_date_${index}`}
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Due Date {index + 1}
+                      </label>
+                      <input
+                        type="date"
+                        id={`due_date_${index}`}
+                        value={
+                          editStudent.due_dates && editStudent.due_dates[index]
+                            ? editStudent.due_dates[index]
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const newDueDates = editStudent?.due_dates
+                            ? [...editStudent.due_dates]
+                            : [];
+                          newDueDates[index] = e.target.value;
+                          setEditStudent((prev) => {
+                            if (!prev) return prev;
+                            return {
+                              ...prev,
+                              due_dates: newDueDates,
+                            } as Student;
+                          });
+                        }}
+                        className="input-field mt-1"
+                      />
+                    </div>
+                  ))}
                 </div>
               )}
               {[...Array(editStudent.installments)].map((_, index) => (
@@ -923,7 +907,7 @@ const handleSaveEditStudent = async () => {
                     id={`installment_amt_${index}`}
                     value={
                       editStudent.installment_amt &&
-                      editStudent.installment_amt[index]
+                        editStudent.installment_amt[index]
                         ? editStudent.installment_amt[index]
                         : ""
                     }
@@ -977,9 +961,8 @@ const handleSaveEditStudent = async () => {
       <div className="flex flex-col space-y-2 mb-5">
         <div className="flex space-x-2">
           <button
-            className={`btn text- ${
-              selectedCategory === "All" ? "btn-primary" : "btn-secondary"
-            }`}
+            className={`btn text- ${selectedCategory === "All" ? "btn-primary" : "btn-secondary"
+              }`}
             onClick={() => setSelectedCategory("All")}
           >
             All
@@ -987,9 +970,8 @@ const handleSaveEditStudent = async () => {
           {studentCategories.map((category) => (
             <button
               key={category}
-              className={`btn ${
-                selectedCategory === category ? "btn-primary" : "btn-secondary"
-              }`}
+              className={`btn ${selectedCategory === category ? "btn-primary" : "btn-secondary"
+                }`}
               onClick={() => setSelectedCategory(category)}
             >
               {category}
@@ -1000,9 +982,8 @@ const handleSaveEditStudent = async () => {
         {/* Course selection based on category */}
         <div className="flex space-x-2 pl-4">
           <button
-            className={`btn ${
-              selectedCourse === "All" ? "btn-primary" : "btn-secondary"
-            }`}
+            className={`btn ${selectedCourse === "All" ? "btn-primary" : "btn-secondary"
+              }`}
             onClick={() => setSelectedCourse("All")}
           >
             All
@@ -1010,9 +991,8 @@ const handleSaveEditStudent = async () => {
           {studentCourses.map((course) => (
             <button
               key={course}
-              className={`btn ${
-                selectedCourse === course ? "btn-primary" : "btn-secondary"
-              }`}
+              className={`btn ${selectedCourse === course ? "btn-primary" : "btn-secondary"
+                }`}
               onClick={() => setSelectedCourse(course)}
             >
               {course}
@@ -1023,9 +1003,8 @@ const handleSaveEditStudent = async () => {
         {/* Year selection based on course */}
         <div className="flex space-x-2 pl-8">
           <button
-            className={`btn ${
-              selectedYear === 0 ? "btn-primary" : "btn-secondary"
-            }`}
+            className={`btn ${selectedYear === 0 ? "btn-primary" : "btn-secondary"
+              }`}
             onClick={() => setSelectedYear(0)}
           >
             All
@@ -1035,16 +1014,15 @@ const handleSaveEditStudent = async () => {
               selectedCategory === "School"
                 ? yearOptionsSchool
                 : selectedCategory === "Diploma"
-                ? yearOptionsDiploma
-                : selectedCategory === "Junior College"
-                ? yearOptionsJuniorCollege
-                : [];
+                  ? yearOptionsDiploma
+                  : selectedCategory === "Junior College"
+                    ? yearOptionsJuniorCollege
+                    : [];
             return yearOptions.map((year) => (
               <button
                 key={year}
-                className={`btn ${
-                  selectedYear === year ? "btn-primary" : "btn-secondary"
-                }`}
+                className={`btn ${selectedYear === year ? "btn-primary" : "btn-secondary"
+                  }`}
                 onClick={() => setSelectedYear(year)}
               >
                 {year}
@@ -1070,9 +1048,7 @@ const handleSaveEditStudent = async () => {
           Showing {filteredStudents.length} out of {students.length} students
         </span>
       </div>
-
       {/* Students Table */}
-
       <div className="overflow-x-scroll">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -1184,13 +1160,12 @@ const handleSaveEditStudent = async () => {
                               </div>
                             </td>
                             <td
-                              className={`px-10 py-1 m-3 text-x ${
-                                student.fee_status === "Paid"
+                              className={`px-10 py-1 m-3 text-x ${student.fee_status === "Paid"
                                   ? "text-green-800"
                                   : student.fee_status === "Partial"
-                                  ? "text-yellow-500"
-                                  : "text-red-800"
-                              }`}
+                                    ? "text-yellow-500"
+                                    : "text-red-800"
+                                }`}
                             >
                               {student.fee_status}
                             </td>
@@ -1584,7 +1559,7 @@ const handleSaveEditStudent = async () => {
                         id={`installment_date_${index}`}
                         value={
                           newStudent.installment_dates &&
-                          newStudent.installment_dates[index]
+                            newStudent.installment_dates[index]
                             ? newStudent.installment_dates[index]
                             : ""
                         }
@@ -1600,6 +1575,39 @@ const handleSaveEditStudent = async () => {
                         }}
                         className="input-field mt-1"
                         required
+                      />
+                    </div>
+                  ))}
+                  <h3 className="text-md font-semibold mb-2 mt-6">
+                    Due Dates
+                  </h3>
+                  {[...Array(newStudent.installments)].map((_, index) => (
+                    <div key={`due_date_${index}`} className="mb-2">
+                      <label
+                        htmlFor={`due_date_${index}`}
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Due Date {index + 1}
+                      </label>
+                      <input
+                        type="date"
+                        id={`due_date_${index}`}
+                        value={
+                          newStudent.due_dates && newStudent.due_dates[index]
+                            ? newStudent.due_dates[index]
+                            : ""
+                        }
+                        onChange={(e) => {
+                          const newDueDates = newStudent.due_dates
+                            ? [...newStudent.due_dates]
+                            : [];
+                          newDueDates[index] = e.target.value;
+                          setNewStudent((prev) => ({
+                            ...prev,
+                            due_dates: newDueDates,
+                          }));
+                        }}
+                        className="input-field mt-1"
                       />
                     </div>
                   ))}
@@ -1702,11 +1710,15 @@ const handleSaveEditStudent = async () => {
                   setAdding(true);
                   setAddError(null);
                   try {
+                    // Sanitize installment_dates to replace empty strings with null before update
+                    const sanitizedInstallmentDates = (newStudent.installment_dates || [])
+                      .map((date) => (date === "" ? null : date))
+                      .filter((d): d is string => d !== null);
                     const { error } = await supabase
                       .from("students")
                       .update({
                         installment_amt: newStudent.installment_amt,
-                        installment_dates: newStudent.installment_dates,
+                        installment_dates: sanitizedInstallmentDates,
                         installment_descriptions:
                           newStudent.installment_descriptions,
                         installments: newStudent.installment_amt.length,
@@ -1786,7 +1798,7 @@ const handleSaveEditStudent = async () => {
                         id={`installment_date_${index}`}
                         value={
                           newStudent.installment_dates &&
-                          newStudent.installment_dates[index]
+                            newStudent.installment_dates[index]
                             ? newStudent.installment_dates[index]
                             : ""
                         }
@@ -1813,7 +1825,7 @@ const handleSaveEditStudent = async () => {
                         id={`installment_description_${index}`}
                         value={
                           newStudent.installment_descriptions &&
-                          newStudent.installment_descriptions[index]
+                            newStudent.installment_descriptions[index]
                             ? newStudent.installment_descriptions[index]
                             : ""
                         }
@@ -1860,4 +1872,4 @@ const handleSaveEditStudent = async () => {
     </div>
   );
 };
-export default Students
+export default Students;
