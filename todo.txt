@@ -1,4 +1,0 @@
-> Whatsapp API
-> Call reminder
-> React - React Native 
-> Fees

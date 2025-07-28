@@ -49,3 +49,25 @@ export interface Payment {
   status: string;
 }
 
+export interface Exam {
+  id: number;
+  name: string;
+  date: string;
+  category: string;
+  course: string;
+  year: number;
+  subject: string;
+  marks: number;
+}
+
+export interface Performance {
+  id: number;
+  result_id: number;
+  exam_name: string;
+  student_category: string;
+  student_name: string;
+  date: string;
+  marks: number;
+  total_marks: number;
+  percentage: number;
+}

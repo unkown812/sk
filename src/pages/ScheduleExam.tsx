@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
 import supabase from '../lib/supabase';
-
-interface Exam {
-  id: number;
-  examName: string;
-  date: string;
-  marks: number;
-}
-
+import { Exam } from "../types/types";
 
 const ScheduleExam: React.FC = () => {
   const [name, setName] = useState<string>('');
