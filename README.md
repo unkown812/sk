@@ -1,35 +1,34 @@
-# Project Title
+# Student Management System (SK Tutorials)
 
-Student Management System 
-# Description
-©️ SK Tutorials. All rights reserved.
+A modern, web-based Student Management System built using **React JS** and hosted at [sk-tutorials.netlify.app](https://sk-tutorials.netlify.app). This system simplifies tasks like tracking attendance, managing student profiles, and monitoring academic performance.
 
-<!-- ## Table of Contents
+---
 
-- [Installation](#installation)
-- [Usage](#usage)
-- [Features](#features)
-- [Contributing](#contributing)
-- [License](#license)
+## 🚀 Features
 
-## Installation
+- 📋 Student profile management  
+- 📆 Attendance tracking  
+- 📊 Performance monitoring  
+- 💻 Modern, responsive UI  
+- ☁️ Deployed using Netlify
 
-Describe how to install and set up your project.
+---
 
-## Usage
+## 🛠 Tech Stack
 
-Instructions and examples for using your project.
+- **Frontend:** React.js,TypeScript,Javascript
+- **Hosting:** Netlify  
+- **Database:** Supabase  
+- **Version Control:** Git & GitHub
 
-## Features
+---
 
-- Feature 1
-- Feature 2
-- Feature 3
+## 📦 Getting Started
 
-## Contributing
-
-Guidelines for contributing to the project.
-
-## License
-
-Specify the license under which the project is distributed. -->
+Clone the repository and run the project locally:
+```bash
+git clone https://github.com/unkown812/sk.git
+cd sk
+npm install
+npm run dev
+```
