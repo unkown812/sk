@@ -4,7 +4,7 @@ import supabase from '../../lib/supabase';
 interface Student {
   id?: number;
   name: string;
-  installment_dates?: string[];
+  due_dates?: string[];
 }
 
 const DueDateReminder: React.FC = () => {
@@ -15,11 +15,11 @@ const DueDateReminder: React.FC = () => {
     const fetchStudentsWithDueToday = async () => {
       try {
         const todayDate = new Date();
-        const todayStr = todayDate.toISOString().split('T')[0]; // yyyy-mm-dd
+        const todayStr = todayDate.toISOString().split('T')[0]; 
 
         const { data, error } = await supabase
           .from('students')
-          .select('id, name, installment_dates');
+          .select('id, name, due_dates');
 
         if (error) {
           console.error('Error fetching students:', error);
@@ -27,10 +27,9 @@ const DueDateReminder: React.FC = () => {
         }
 
         if (data && data.length > 0) {
-          // Filter students who have installment_dates containing todayStr
           const studentsDueToday = data
             .map((student: Student) => {
-              const dueDatesToday = (student.installment_dates || []).filter(dateStr => dateStr === todayStr);
+              const dueDatesToday = (student.due_dates || []).filter(dateStr => dateStr === todayStr);
               if (dueDatesToday.length > 0) {
                 return { student, dueDates: dueDatesToday };
               }
@@ -79,11 +78,11 @@ const DueDateReminder: React.FC = () => {
   return (
     <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative mb-4" role="alert">
       <strong className="font-bold">Installment Due Date Reminder!</strong>
-      <span className="block sm:inline"> The following students have installment(s) due today ({new Date().toISOString().split('T')[0]}):</span>
+      {/* <span className="block sm:inline"> The following students have installment(s) due today ({new Date().toISOString().split('T')[0]}):</span> */}
       <ul className="list-disc list-inside mt-2">
         {dueTodayStudents.map(({student, dueDates}) => (
           <li key={student.id}>
-            {student.name} - Due Date(s): {dueDates.join(', ')}
+            {student.name} - Due Date: {dueDates.join(', ')}
           </li>
         ))}
       </ul>

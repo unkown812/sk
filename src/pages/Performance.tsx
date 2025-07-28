@@ -1,7 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { PlusCircle } from "lucide-react";
 import supabase from "../lib/supabase";
-import { Student, Performance, Exam } from "../types/types";
+import { Student,  Exam } from "../types/types";
+
+interface Performance {
+  id: number;
+  result_id: number;
+  exam_name: string;
+  student_category: string;
+  student_name: string;
+  date: string;
+  marks: number;
+  total_marks: number;
+  percentage: number;
+}
 
 const Performance: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");

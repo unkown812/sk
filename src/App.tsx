@@ -9,7 +9,6 @@ import Courses from './pages/Courses';
 import Settings from './pages/Settings';
 // import StudentDetail from './pages/StudentDetail';
 import Login from './pages/Login';
-import Register from './pages/Register';
 import { UserProvider } from './context/UserContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { useEffect, useState } from 'react';
@@ -20,7 +19,6 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="students" element={<Students />} />

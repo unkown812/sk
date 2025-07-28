@@ -14,12 +14,6 @@ interface Filters {
   year: string;
 }
 
-/**
- * Groups students by category > course > year applying filters.
- * @param students Array of Student objects
- * @param filters Filters object with category, course, year
- * @returns Grouped students object
- */
 export function groupStudents(
   students: Student[],
   filters: Filters
