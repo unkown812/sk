@@ -5,6 +5,7 @@ interface Student {
   id?: number;
   name: string;
   due_dates?: string[];
+  phone?: number;
 }
 
 const DueDateReminder: React.FC = () => {
@@ -19,7 +20,7 @@ const DueDateReminder: React.FC = () => {
 
         const { data, error } = await supabase
           .from('students')
-          .select('id, name, due_dates');
+          .select('id, name, due_dates,phone');
 
         if (error) {
           console.error('Error fetching students:', error);
@@ -27,21 +28,20 @@ const DueDateReminder: React.FC = () => {
         }
 
         if (data && data.length > 0) {
-          const studentsDueToday = data
-            .map((student: Student) => {
-              const dueDatesToday = (student.due_dates || []).filter(dateStr => dateStr === todayStr);
-              if (dueDatesToday.length > 0) {
-                return { student, dueDates: dueDatesToday };
-              }
-              return null;
-            })
-            .filter((item): item is {student: Student, dueDates: string[]} => item !== null);
+        const studentsDueToday = data
+          .map((student: any) => {
+            const dueDatesToday = (student.due_dates || []).filter((dateStr: string) => dateStr === todayStr);
+            if (dueDatesToday.length > 0) {
+              return { student, dueDates: dueDatesToday };
+            }
+            return null;
+          })
+          .filter((item): item is {student: Student, dueDates: string[]} => item !== null);
 
           if (studentsDueToday.length > 0) {
             setDueTodayStudents(studentsDueToday);
             setShowReminder(true);
 
-            // Show browser notification
             if (Notification.permission === 'granted') {
               new Notification('Installment Due Date Reminder', {
                 body: `You have ${studentsDueToday.length} student(s) with installment due today.`,
@@ -81,8 +81,13 @@ const DueDateReminder: React.FC = () => {
       {/* <span className="block sm:inline"> The following students have installment(s) due today ({new Date().toISOString().split('T')[0]}):</span> */}
       <ul className="list-disc list-inside mt-2">
         {dueTodayStudents.map(({student, dueDates}) => (
-          <li key={student.id}>
-            {student.name} - Due Date: {dueDates.join(', ')}
+          // <li key={student.id}>
+          //   {student.name} - Due Date: {dueDates.join(', ')}{' '} <br/>
+          //   <a href={`tel:+${student.phone}`}>{student.phone}</a>
+          // </li>
+          <li key={student.id} className='space-between'>
+            {student.name} - 
+            <a href={`tel:+${student.phone}`}>{student.phone}</a>
           </li>
         ))}
       </ul>
