@@ -105,7 +105,6 @@ const Students: React.FC = () => {
         ? editStudent.installment_amt.reduce((sum, val) => sum + val, 0)
         : 0;
 
-      // Ensure due_dates array length matches installments
       let dueDates = editStudent.due_dates || [];
       if (editStudent.installments) {
         while (dueDates.length < editStudent.installments) {
@@ -115,8 +114,7 @@ const Students: React.FC = () => {
           dueDates = dueDates.slice(0, editStudent.installments);
         }
       }
-      // Sanitize dueDates to replace empty strings with null
-      // To satisfy TypeScript, cast to string[] after filtering nulls
+
       dueDates = dueDates.map((date) => (date === "" ? null : date)).filter((d): d is string => d !== null);
 
       const studentToUpdate = {

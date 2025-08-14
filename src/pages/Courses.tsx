@@ -10,7 +10,7 @@ const MOCK_COURSES = [
     subjects: ['Physics', 'Chemistry', 'Biology', 'Mathematics'],
     duration: '12 months',
     fee: 15000,
-    teachers: ['Rajesh Kumar', 'Sneha Sharma']
+    // teachers: ['Rajesh Kumar', 'Sneha Sharma']
   },
   {
     id: 2,
@@ -20,7 +20,7 @@ const MOCK_COURSES = [
     subjects: ['Physics', 'Chemistry', 'Biology', 'Mathematics'],
     duration: '12 months',
     fee: 12000,
-    teachers: ['Anita Desai', 'Prakash Verma']
+    // teachers: ['Anita Desai', 'Prakash Verma']
   },
   {
     id: 3,
@@ -30,7 +30,7 @@ const MOCK_COURSES = [
     subjects: ['Physics', 'Chemistry', 'Mathematics'],
     duration: '12 months',
     fee: 18000,
-    teachers: ['Dr. Mohan Singh', 'Kavita Patel']
+    // teachers: ['Dr. Mohan Singh', 'Kavita Patel']
   },
   {
     id: 4,
@@ -40,7 +40,7 @@ const MOCK_COURSES = [
     subjects: ['Physics', 'Chemistry', 'Biology'],
     duration: '12 months',
     fee: 18000,
-    teachers: ['Dr. Shweta Iyer', 'Rahul Sharma']
+    // teachers: ['Dr. Shweta Iyer', 'Rahul Sharma']
   },
   {
     id: 5,
@@ -50,7 +50,7 @@ const MOCK_COURSES = [
     subjects: ['Physics', 'Chemistry', 'Mathematics'],
     duration: '18 months',
     fee: 25000,
-    teachers: ['Dr. Vijay Reddy', 'Pooja Mehta']
+    // teachers: ['Dr. Vijay Reddy', 'Pooja Mehta']
   },
   {
     id: 6,
@@ -60,7 +60,7 @@ const MOCK_COURSES = [
     subjects: ['Physics', 'Chemistry', 'Biology'],
     duration: '18 months',
     fee: 25000,
-    teachers: ['Dr. Arjun Singh', 'Dr. Meera Gupta']
+    // teachers: ['Dr. Arjun Singh', 'Dr. Meera Gupta']
   },
   {
     id: 7,
@@ -70,7 +70,7 @@ const MOCK_COURSES = [
     subjects: ['Physics', 'Chemistry', 'Mathematics'],
     duration: '6 months',
     fee: 15000,
-    teachers: ['Vikram Joshi', 'Neha Sharma']
+    // teachers: ['Vikram Joshi', 'Neha Sharma']
   },
   {
     id: 8,
@@ -80,7 +80,7 @@ const MOCK_COURSES = [
     subjects: ['Engineering Mathematics', 'Engineering Physics', 'Computer Science'],
     duration: '24 months',
     fee: 20000,
-    teachers: ['Prof. Deepak Kumar', 'Anjali Mishra']
+    // teachers: ['Prof. Deepak Kumar', 'Anjali Mishra']
   },
   {
     id: 9,
@@ -90,7 +90,7 @@ const MOCK_COURSES = [
     subjects: ['Mechanics', 'Electromagnetism', 'Modern Physics', 'Mathematics'],
     duration: '36 months',
     fee: 22000,
-    teachers: ['Dr. Sanjay Patel', 'Dr. Priya Nair']
+    // teachers: ['Dr. Sanjay Patel', 'Dr. Priya Nair']
   }
 ];
 
@@ -139,17 +139,12 @@ const Courses: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Courses Management</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">Courses</h1>
           <p className="mt-1 text-sm text-gray-500">
             Manage all courses and batches offered by SK Tutorials
           </p>
         </div>
-        <div className="mt-4 md:mt-0">
-          <button className="btn-primary flex items-center">
-            <PlusCircle className="h-5 w-5 mr-2" />
-            {activeTab === 'courses' ? 'Add New Course' : 'Add New Batch'}
-          </button>
-        </div>
+        
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -211,16 +206,15 @@ const Courses: React.FC = () => {
         </div>
       </div>
 
-      {activeTab === 'courses' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCourses.map((course) => (
             <div key={course.id} className="card hover:shadow-md transition-shadow">
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">{course.name}</h3>
-                  <span className="badge badge-blue mt-1">{course.category}</span>
+                  <span className="badge mt-1">{course.category}</span>
                 </div>
-                <div className="p-2 bg-blue-50 rounded-lg text-primary font-medium">
+                <div className="p-2 rounded-lg text-primary font-medium">
                   ₹{course.fee.toLocaleString()}
                 </div>
               </div>
@@ -252,21 +246,21 @@ const Courses: React.FC = () => {
                 <p className="text-sm font-medium text-gray-700">Subjects:</p>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {course.subjects.map((subject, idx) => (
-                    <span key={idx} className="text-xs bg-gray-100 px-2 py-1 rounded-full">
+                    <span key={idx} className="text-xs px-2 py-1 ">
                       {subject}
                     </span>
                   ))}
                 </div>
               </div>
 
-              <div className="mt-4">
+              {/* <div className="mt-4">
                 <p className="text-sm font-medium text-gray-700">Faculty:</p>
                 <div className="mt-1">
                   {course.teachers.map((teacher, idx) => (
                     <p key={idx} className="text-sm text-gray-600">{teacher}</p>
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               <div className="mt-6 pt-4 border-t flex justify-between">
                 <button className="text-primary hover:text-primary-dark font-medium">
@@ -284,53 +278,6 @@ const Courses: React.FC = () => {
             </div>
           )}
         </div>
-      ):(
-        <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Batch Name</th>
-                <th>Course</th>
-                <th>Schedule</th>
-                <th>Teacher</th>
-                <th>Students</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredBatches.map((batch) => (
-                <tr key={batch.id}>
-                  <td className="font-medium">{batch.name}</td>
-                  <td>
-                    <span className="badge badge-blue">{batch.course}</span>
-                  </td>
-                  <td>
-                    <div>{batch.timing}</div>
-                    <div className="text-sm text-gray-500">{batch.days}</div>
-                  </td>
-                  <td>{batch.teacher}</td>
-                  <td>{batch.students}</td>
-                  <td className="space-x-2">
-                    <button className="text-primary hover:text-primary-dark font-medium">
-                      View
-                    </button>
-                    <button className="text-primary hover:text-primary-dark font-medium">
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filteredBatches.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="text-center py-4 text-gray-500">
-                    No batches found matching your criteria
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
     </div>
   );
 };
