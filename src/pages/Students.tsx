@@ -30,6 +30,7 @@ const Students: React.FC = () => {
   const [enrollmentYearEnd, setEnrollmentYearEnd] = useState<number | "">("");
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
+  const [otherCourse, setOtherCourse] = useState("");
   const [newStudent, setNewStudent] = useState<Student>({
     id: 0,
     name: "",
@@ -151,7 +152,15 @@ const Students: React.FC = () => {
   ) => {
     const { name, value } = e.target;
 
-    if (name === "total_fee") {
+    if (name === "course") {
+      setNewStudent((prev) => ({
+        ...prev,
+        course: value,
+      }));
+      if (value !== "Other") {
+        setOtherCourse("");
+      }
+    } else if (name === "total_fee") {
       const totalFeeNum = Number(value);
       let installmentsNum = newStudent.installments ?? 1;
       if (installmentsNum < 1) installmentsNum = 1;
@@ -206,12 +215,6 @@ const Students: React.FC = () => {
         semester: Number(value),
       }));
     }
-    // else if (name === 'due_date') {
-    //   setNewStudent((prev) => ({
-    //     ...prev,
-    //     due_date: Number(value),
-    //   }));
-    // }
     else {
       setNewStudent((prev) => ({
         ...prev,
@@ -236,7 +239,6 @@ const Students: React.FC = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // 'Authorization': 'Bearer YOUR_API_TOKEN', // Add auth if needed
         },
         body: JSON.stringify({
           to: phone,
@@ -358,12 +360,14 @@ const Students: React.FC = () => {
     "School",
     "Junior College",
     "Diploma",
+    "Degree",
     "Entrance Exams",
   ];
 
   const schoolCourses = ["SSC", "CBSE", "ICSE", "Others"];
 
   const juniorCollegeCourses = ["Science", "Commerce", "Arts"];
+
   const diplomaCourses = [
     "Computer Science",
     "Mechanical",
@@ -371,6 +375,15 @@ const Students: React.FC = () => {
     "Civil",
     "Other",
   ];
+
+  const degreeCourses = [
+    "Computer Science",
+    "Mechanical",
+    "Electrical",
+    "Civil",
+    "Other",  
+  ];
+  
   const entranceExamCourses = ["NEET", "JEE", "MHTCET", "Boards"];
 
   useEffect(() => {
@@ -383,6 +396,10 @@ const Students: React.FC = () => {
         break;
       case "Diploma": {
         setStudentCourses(diplomaCourses);
+        break;
+      }
+      case "Degree": {
+        setStudentCourses(degreeCourses);
         break;
       }
       case "Entrance Exams":
@@ -438,6 +455,7 @@ const Students: React.FC = () => {
       subjects_enrolled: [],
       due_dates: [],
     });
+    setOtherCourse(""); 
     setAddError(null);
     setStudentCourses(schoolCourses);
   };
@@ -460,7 +478,11 @@ const Students: React.FC = () => {
     setAdding(true);
     setAddError(null);
     try {
-      if (!newStudent.name || !newStudent.course || !newStudent.category) {
+      const finalCourse = newStudent.course === "Other" && otherCourse.trim() 
+        ? otherCourse.trim() 
+        : newStudent.course;
+
+      if (!newStudent.name || !finalCourse || !newStudent.category) {
         setAddError("Please fill in all required fields.");
         setAdding(false);
         return;
@@ -477,8 +499,6 @@ const Students: React.FC = () => {
       const installmentAmtNum =
         installmentsNum > 0 ? totalFeeNum / installmentsNum : 0;
       const dueAmountNum = totalFeeNum - (newStudent.paid_fee || 0);
-      // Sanitize installment_dates and due_dates to replace empty strings with null before insert
-      // Filter out nulls to satisfy TypeScript string[] type
       const sanitizedInstallmentDates = (newStudent.installment_dates || [])
         .map((date) => (date === "" ? null : date))
         .filter((d): d is string => d !== null);
@@ -488,6 +508,7 @@ const Students: React.FC = () => {
 
       const studentToInsert = {
         ...newStudent,
+        course: finalCourse,
         year: sanitizedYear,
         semester: sanitizedSemester,
         total_fee: totalFeeNum,
@@ -506,6 +527,7 @@ const Students: React.FC = () => {
         setAddError(error.message);
       } else {
         setShowAddModal(false);
+        setOtherCourse(""); 
         fetchStudents();
       }
     } catch (err: unknown) {
@@ -525,7 +547,6 @@ const Students: React.FC = () => {
     setShowFeeModal(true);
   };
 
-  // Removed unused functions to fix eslint errors
 
   return (
     <div className="space-6">
@@ -1311,6 +1332,26 @@ const Students: React.FC = () => {
                   ))}
                 </select>
               </div>
+              {newStudent.course === "Other" && (
+                <div>
+                  <label
+                    htmlFor="otherCourse"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Specify Course Name
+                  </label>
+                  <input
+                    type="text"
+                    name="otherCourse"
+                    id="otherCourse"
+                    value={otherCourse}
+                    onChange={(e) => setOtherCourse(e.target.value)}
+                    className="input-field mt-1"
+                    placeholder="Enter the course name"
+                    required
+                  />
+                </div>
+              )}
               <div>
                 <label
                   htmlFor="year"
@@ -1624,35 +1665,6 @@ const Students: React.FC = () => {
             {addError && (
               <div className="mb-4 text-red-600 font-medium">{addError}</div>
             )}
-            {/* <div className="space-y-4">
-              <p>Total Fee: ₹{newStudent.total_fee}</p>
-              <p>Paid Fee: ₹{newStudent.paid_fee}</p>
-              <p>Remaining Fee: ₹{getRemainingFee(newStudent)}</p>
-              {(newStudent.fee_status === 'Unpaid' || newStudent.fee_status === 'Partial') && (
-                <div>
-                  <label htmlFor="feeAmount" className="block text-sm font-medium text-gray-700">
-                    Add Amount (₹)
-                  </label>
-                  <input
-                    type="number"
-                    id="feeAmount"
-                    min={0}
-                    value={feeAmount ?? ''}
-                    onChange={handleFeeAmountChange}
-                    className="input-field mt-1"
-                    placeholder="Enter amount to add"
-                  />
-                </div>
-              )}
-            </div> */}
-            {/* <div className="mt-6 flex justify-end space-x-4">
-              <button className="btn-secondary" onClick={() => setShowFeeModal(false)} disabled={adding}>Cancel</button>
-              {(newStudent.fee_status === 'Unpaid' || newStudent.fee_status === 'Partial') && (
-                <button className="btn-primary" onClick={handleFeeUpdate} disabled={adding}>
-                  {adding ? 'Saving...' : 'Save'}
-                </button>
-              )}
-            </div> */}
             <div className="mt-6">
               <h3 className="text-lg font-semibold mb-2">Installments</h3>
               <button
