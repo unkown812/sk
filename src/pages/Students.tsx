@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { PlusCircle, Search, Download, Users, XCircle } from "lucide-react";
+import {
+  PlusCircle,
+  Search,
+  Download,
+  Users,
+  XCircle,
+  Trash2,
+} from "lucide-react";
 import supabase from "../lib/supabase";
 import "../index.css";
 import FeeDueReminder from "../components/students/FeeDueReminder";
 import ReceiptModal from "../components/students/ReceiptModal";
-import type { Student } from '../types/types';
+import DeleteConfirmationModal from "../components/students/DeleteConfirmationModal";
+import type { Student } from "../types/types";
 
 const Students: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -26,11 +34,16 @@ const Students: React.FC = () => {
   const [dueStudents, setDueStudents] = useState<Student[]>([]);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [receiptStudent, setReceiptStudent] = useState<Student | null>(null);
-  const [enrollmentYearStart, setEnrollmentYearStart] = useState<number | "">("");
+  const [enrollmentYearStart, setEnrollmentYearStart] = useState<number | "">(
+    ""
+  );
   const [enrollmentYearEnd, setEnrollmentYearEnd] = useState<number | "">("");
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const [otherCourse, setOtherCourse] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [newStudent, setNewStudent] = useState<Student>({
     id: 0,
     name: "",
@@ -83,11 +96,13 @@ const Students: React.FC = () => {
         ...prev,
         [name]:
           name === "paid_fee" ||
-            name === "due_date" ||
-            name === "installments" ||
-            name === "year" ||
-            name === "semester"
-            ? value === "" ? null : Number(value)
+          name === "due_date" ||
+          name === "installments" ||
+          name === "year" ||
+          name === "semester"
+            ? value === ""
+              ? null
+              : Number(value)
             : value,
       } as Student;
     });
@@ -116,7 +131,9 @@ const Students: React.FC = () => {
         }
       }
 
-      dueDates = dueDates.map((date) => (date === "" ? null : date)).filter((d): d is string => d !== null);
+      dueDates = dueDates
+        .map((date) => (date === "" ? null : date))
+        .filter((d): d is string => d !== null);
 
       const studentToUpdate = {
         ...editStudent,
@@ -200,7 +217,9 @@ const Students: React.FC = () => {
       setNewStudent((prev) => ({
         ...prev,
         installments: installmentsNum,
-        installment_amt: Array(installmentsNum).fill((newStudent.total_fee || 0) / installmentsNum),
+        installment_amt: Array(installmentsNum).fill(
+          (newStudent.total_fee || 0) / installmentsNum
+        ),
         installment_dates: newInstallmentDates,
         due_dates: newDueDates,
       }));
@@ -214,12 +233,15 @@ const Students: React.FC = () => {
         ...prev,
         semester: Number(value),
       }));
-    }
-    else {
+    } else {
       setNewStudent((prev) => ({
         ...prev,
         [name]:
-          name === "paid_fee" || name === "due_date" ? value === "" ? null : Number(value) : value,
+          name === "paid_fee" || name === "due_date"
+            ? value === ""
+              ? null
+              : Number(value)
+            : value,
       }));
     }
   };
@@ -231,7 +253,6 @@ const Students: React.FC = () => {
       setShowEditModal(true);
     }
   };
-
 
   const sendWhatsAppMessage = async (phone: string, message: string) => {
     try {
@@ -379,9 +400,9 @@ const Students: React.FC = () => {
     "Mechanical",
     "Electrical",
     "Civil",
-    "Other",  
+    "Other",
   ];
-  
+
   const entranceExamCourses = ["NEET", "JEE", "MHTCET", "Boards"];
 
   useEffect(() => {
@@ -453,7 +474,7 @@ const Students: React.FC = () => {
       subjects_enrolled: [],
       due_dates: [],
     });
-    setOtherCourse(""); 
+    setOtherCourse("");
     setAddError(null);
     setStudentCourses(schoolCourses);
   };
@@ -476,33 +497,31 @@ const Students: React.FC = () => {
     setAdding(true);
     setAddError(null);
     try {
-      const finalCourse = newStudent.course === "Other" && otherCourse.trim() 
-        ? otherCourse.trim() 
-        : newStudent.course;
+      const finalCourse =
+        newStudent.course === "Other" && otherCourse.trim()
+          ? otherCourse.trim()
+          : newStudent.course;
 
-      if (!newStudent.name || !finalCourse || !newStudent.category) {
-        setAddError("Please fill in all required fields.");
-        setAdding(false);
-        return;
-      }
       const sanitizedYear =
         typeof newStudent.year === "number" ? newStudent.year : null;
       const sanitizedSemester =
         typeof newStudent.semester === "number" ? newStudent.semester : null;
       const totalFeeNum = Number(newStudent.total_fee);
-      const installmentsNum = Math.min(
-        Math.max(Number(newStudent.installments), 1),
-        24
-      );
-      const installmentAmtNum =
-        installmentsNum > 0 ? totalFeeNum / installmentsNum : 0;
-      const dueAmountNum = totalFeeNum - (newStudent.paid_fee || 0);
-      const sanitizedInstallmentDates = (newStudent.installment_dates || [])
-        .map((date) => (date === "" ? null : date))
-        .filter((d): d is string => d !== null);
-      const sanitizedDueDates = (newStudent.due_dates || [])
-        .map((date) => (date === "" ? null : date))
-        .filter((d): d is string => d !== null);
+      // installmentsNum is commented out in the studentToInsert object below
+      // const installmentsNum = Math.min(
+      //   Math.max(Number(newStudent.installments), 1),
+      //   24
+      // );
+      // These variables are commented out in the studentToInsert object below
+      // const installmentAmtNum =
+      //   installmentsNum > 0 ? totalFeeNum / installmentsNum : 0;
+      // const dueAmountNum = totalFeeNum - (newStudent.paid_fee || 0);
+      // const sanitizedInstallmentDates = (newStudent.installment_dates || [])
+      //   .map((date) => (date === "" ? null : date))
+      //   .filter((d): d is string => d !== null);
+      // const sanitizedDueDates = (newStudent.due_dates || [])
+      //   .map((date) => (date === "" ? null : date))
+      //   .filter((d): d is string => d !== null);
 
       const studentToInsert = {
         ...newStudent,
@@ -526,7 +545,7 @@ const Students: React.FC = () => {
         setAddError(error.message);
       } else {
         setShowAddModal(false);
-        setOtherCourse(""); 
+        setOtherCourse("");
         fetchStudents();
       }
     } catch (err: unknown) {
@@ -537,6 +556,39 @@ const Students: React.FC = () => {
       }
     }
     setAdding(false);
+  };
+
+  const handleDeleteStudent = async () => {
+    if (!studentToDelete) return;
+
+    setDeleteError(null);
+
+    try {
+      const { error } = await supabase
+        .from("students")
+        .delete()
+        .eq("name", studentToDelete.name);
+
+      if (error) {
+        setDeleteError(error.message);
+      } else {
+        setShowDeleteModal(false);
+        setStudentToDelete(null);
+        fetchStudents();
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setDeleteError(err.message);
+      } else {
+        setDeleteError("An unknown error occurred while deleting the student.");
+      }
+    }
+  };
+
+  const confirmDeleteStudent = (student: Student) => {
+    setStudentToDelete(student);
+    setShowDeleteModal(true);
+    setDeleteError(null);
   };
 
   const handleOpenFeeModal = (student: Student) => {
@@ -822,87 +874,94 @@ const Students: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {[...Array(editStudent.installments)].map((_, index) => (
-                          <tr key={index}>
-                            <td>{index + 1}</td>
-                            <td>
-                              <input
-                                type="number"
-                                value={
-                                  editStudent.installment_amt &&
-                                  editStudent.installment_amt[index]
-                                    ? editStudent.installment_amt[index]
-                                    : ""
-                                }
-                                onChange={(e) => {
-                                  const newAmts = editStudent?.installment_amt
-                                    ? [...editStudent.installment_amt]
-                                    : [];
-                                  newAmts[index] = Number(e.target.value);
-                                  setEditStudent((prev) => {
-                                    if (!prev) return prev;
-                                    return { ...prev, installment_amt: newAmts } as Student;
-                                  });
-                                }}
-                                className="input-field w-full text-center"
-                                required
-                                aria-label={`Installment ${index + 1} Amount`}
-                              />
-                            </td>
-                            <td>
-                              <input
-                                type="date"
-                                value={
-                                  editStudent.installment_dates &&
-                                  editStudent.installment_dates[index]
-                                    ? editStudent.installment_dates[index]
-                                    : ""
-                                }
-                                onChange={(e) => {
-                                  const newDates = editStudent?.installment_dates
-                                    ? [...editStudent.installment_dates]
-                                    : [];
-                                  newDates[index] = e.target.value;
-                                  setEditStudent((prev) => {
-                                    if (!prev) return prev;
-                                    return {
-                                      ...prev,
-                                      installment_dates: newDates,
-                                    } as Student;
-                                  });
-                                }}
-                                className="input-field w-full text-center"
-                                required
-                                aria-label={`Installment ${index + 1} Date`}
-                              />
-                            </td>
-                            <td>
-                              <input
-                                type="date"
-                                value={
-                                  editStudent.due_dates && editStudent.due_dates[index]
-                                    ? editStudent.due_dates[index]
-                                    : ""
-                                }
-                                onChange={(e) => {
-                                  const newDueDates = editStudent?.due_dates
-                                    ? [...editStudent.due_dates]
-                                    : [];
-                                  newDueDates[index] = e.target.value;
-                                  setEditStudent((prev) => {
-                                    if (!prev) return prev;
-                                    return {
-                                      ...prev,
-                                      due_dates: newDueDates,
-                                    } as Student;
-                                  });
-                                }}
-                                className="input-field w-full text-center"
-                                aria-label={`Due Date ${index + 1}`}
-                              />
-                            </td>
-                          </tr>
-                        ))}
+                        {[...Array(editStudent.installments)].map(
+                          (_, index) => (
+                            <tr key={index}>
+                              <td>{index + 1}</td>
+                              <td>
+                                <input
+                                  type="number"
+                                  value={
+                                    editStudent.installment_amt &&
+                                    editStudent.installment_amt[index]
+                                      ? editStudent.installment_amt[index]
+                                      : ""
+                                  }
+                                  onChange={(e) => {
+                                    const newAmts = editStudent?.installment_amt
+                                      ? [...editStudent.installment_amt]
+                                      : [];
+                                    newAmts[index] = Number(e.target.value);
+                                    setEditStudent((prev) => {
+                                      if (!prev) return prev;
+                                      return {
+                                        ...prev,
+                                        installment_amt: newAmts,
+                                      } as Student;
+                                    });
+                                  }}
+                                  className="input-field w-full text-center"
+                                  required
+                                  aria-label={`Installment ${index + 1} Amount`}
+                                />
+                              </td>
+                              <td>
+                                <input
+                                  type="date"
+                                  value={
+                                    editStudent.installment_dates &&
+                                    editStudent.installment_dates[index]
+                                      ? editStudent.installment_dates[index]
+                                      : ""
+                                  }
+                                  onChange={(e) => {
+                                    const newDates =
+                                      editStudent?.installment_dates
+                                        ? [...editStudent.installment_dates]
+                                        : [];
+                                    newDates[index] = e.target.value;
+                                    setEditStudent((prev) => {
+                                      if (!prev) return prev;
+                                      return {
+                                        ...prev,
+                                        installment_dates: newDates,
+                                      } as Student;
+                                    });
+                                  }}
+                                  className="input-field w-full text-center"
+                                  required
+                                  aria-label={`Installment ${index + 1} Date`}
+                                />
+                              </td>
+                              <td>
+                                <input
+                                  type="date"
+                                  value={
+                                    editStudent.due_dates &&
+                                    editStudent.due_dates[index]
+                                      ? editStudent.due_dates[index]
+                                      : ""
+                                  }
+                                  onChange={(e) => {
+                                    const newDueDates = editStudent?.due_dates
+                                      ? [...editStudent.due_dates]
+                                      : [];
+                                    newDueDates[index] = e.target.value;
+                                    setEditStudent((prev) => {
+                                      if (!prev) return prev;
+                                      return {
+                                        ...prev,
+                                        due_dates: newDueDates,
+                                      } as Student;
+                                    });
+                                  }}
+                                  className="input-field w-full text-center"
+                                  aria-label={`Due Date ${index + 1}`}
+                                />
+                              </td>
+                            </tr>
+                          )
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -943,8 +1002,9 @@ const Students: React.FC = () => {
       <div className="flex flex-col space-y-2 mb-5">
         <div className="flex space-x-2">
           <button
-            className={`btn text- ${selectedCategory === "All" ? "btn-primary" : "btn-secondary"
-              }`}
+            className={`btn text- ${
+              selectedCategory === "All" ? "btn-primary" : "btn-secondary"
+            }`}
             onClick={() => setSelectedCategory("All")}
           >
             All
@@ -952,8 +1012,9 @@ const Students: React.FC = () => {
           {studentCategories.map((category) => (
             <button
               key={category}
-              className={`btn ${selectedCategory === category ? "btn-primary" : "btn-secondary"
-                }`}
+              className={`btn ${
+                selectedCategory === category ? "btn-primary" : "btn-secondary"
+              }`}
               onClick={() => setSelectedCategory(category)}
             >
               {category}
@@ -964,8 +1025,9 @@ const Students: React.FC = () => {
         {/* Course selection based on category */}
         <div className="flex space-x-2 pl-4">
           <button
-            className={`btn ${selectedCourse === "All" ? "btn-primary" : "btn-secondary"
-              }`}
+            className={`btn ${
+              selectedCourse === "All" ? "btn-primary" : "btn-secondary"
+            }`}
             onClick={() => setSelectedCourse("All")}
           >
             All
@@ -973,8 +1035,9 @@ const Students: React.FC = () => {
           {studentCourses.map((course) => (
             <button
               key={course}
-              className={`btn ${selectedCourse === course ? "btn-primary" : "btn-secondary"
-                }`}
+              className={`btn ${
+                selectedCourse === course ? "btn-primary" : "btn-secondary"
+              }`}
               onClick={() => setSelectedCourse(course)}
             >
               {course}
@@ -985,8 +1048,9 @@ const Students: React.FC = () => {
         {/* Year selection based on course */}
         <div className="flex space-x-2 pl-8">
           <button
-            className={`btn ${selectedYear === 0 ? "btn-primary" : "btn-secondary"
-              }`}
+            className={`btn ${
+              selectedYear === 0 ? "btn-primary" : "btn-secondary"
+            }`}
             onClick={() => setSelectedYear(0)}
           >
             All
@@ -996,15 +1060,16 @@ const Students: React.FC = () => {
               selectedCategory === "School"
                 ? yearOptionsSchool
                 : selectedCategory === "Diploma"
-                  ? yearOptionsDiploma
-                  : selectedCategory === "Junior College"
-                    ? yearOptionsJuniorCollege
-                    : [];
+                ? yearOptionsDiploma
+                : selectedCategory === "Junior College"
+                ? yearOptionsJuniorCollege
+                : [];
             return yearOptions.map((year) => (
               <button
                 key={year}
-                className={`btn ${selectedYear === year ? "btn-primary" : "btn-secondary"
-                  }`}
+                className={`btn ${
+                  selectedYear === year ? "btn-primary" : "btn-secondary"
+                }`}
                 onClick={() => setSelectedYear(year)}
               >
                 {year}
@@ -1142,12 +1207,13 @@ const Students: React.FC = () => {
                               </div>
                             </td>
                             <td
-                              className={`px-10 py-1 m-3 text-x ${student.fee_status === "Paid"
+                              className={`px-10 py-1 m-3 text-x ${
+                                student.fee_status === "Paid"
                                   ? "text-green-800"
                                   : student.fee_status === "Partial"
-                                    ? "text-yellow-500"
-                                    : "text-red-800"
-                                }`}
+                                  ? "text-yellow-500"
+                                  : "text-red-800"
+                              }`}
                             >
                               {student.fee_status}
                             </td>
@@ -1190,6 +1256,16 @@ const Students: React.FC = () => {
                                 className="text-blue-400 hover:text-black-800 font-small inline-block ml-2"
                               >
                                 Fees
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  confirmDeleteStudent(student);
+                                }}
+                                className="text-red-600 hover:text-red-800 font-small inline-block ml-2"
+                                title="Delete student"
+                              >
+                                <Trash2 className="h-4 w-4 inline" />
                               </button>
                               {/* <button
                               onClick={(e) => {
@@ -1561,7 +1637,7 @@ const Students: React.FC = () => {
                         id={`installment_date_${index}`}
                         value={
                           newStudent.installment_dates &&
-                            newStudent.installment_dates[index]
+                          newStudent.installment_dates[index]
                             ? newStudent.installment_dates[index]
                             : ""
                         }
@@ -1580,9 +1656,7 @@ const Students: React.FC = () => {
                       />
                     </div>
                   ))}
-                  <h3 className="text-md font-semibold mb-2 mt-6">
-                    Due Dates
-                  </h3>
+                  <h3 className="text-md font-semibold mb-2 mt-6">Due Dates</h3>
                   {[...Array(newStudent.installments)].map((_, index) => (
                     <div key={`due_date_${index}`} className="mb-2">
                       <label
@@ -1683,7 +1757,9 @@ const Students: React.FC = () => {
                   setAdding(true);
                   setAddError(null);
                   try {
-                    const sanitizedInstallmentDates = (newStudent.installment_dates || [])
+                    const sanitizedInstallmentDates = (
+                      newStudent.installment_dates || []
+                    )
                       .map((date) => (date === "" ? null : date))
                       .filter((d): d is string => d !== null);
                     const { error } = await supabase
@@ -1770,7 +1846,7 @@ const Students: React.FC = () => {
                         id={`installment_date_${index}`}
                         value={
                           newStudent.installment_dates &&
-                            newStudent.installment_dates[index]
+                          newStudent.installment_dates[index]
                             ? newStudent.installment_dates[index]
                             : ""
                         }
@@ -1798,7 +1874,7 @@ const Students: React.FC = () => {
                         id={`installment_description_${index}`}
                         value={
                           newStudent.installment_descriptions &&
-                            newStudent.installment_descriptions[index]
+                          newStudent.installment_descriptions[index]
                             ? newStudent.installment_descriptions[index]
                             : ""
                         }
@@ -1823,7 +1899,6 @@ const Students: React.FC = () => {
           </div>
         </div>
       )}
-
       {showReceiptModal && receiptStudent && (
         <ReceiptModal
           student={receiptStudent}
@@ -1833,13 +1908,24 @@ const Students: React.FC = () => {
           }}
         />
       )}
-
       {showFeeDueReminder && (
         <FeeDueReminder
           showFeeDueReminder={showFeeDueReminder}
           dueStudents={dueStudents}
           onDismiss={() => setShowFeeDueReminder(false)}
           onSendWhatsAppMessages={sendWhatsAppMessagesToDueStudents}
+        />
+      )}
+      {showDeleteModal && studentToDelete && (
+        <DeleteConfirmationModal
+          isOpen={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setStudentToDelete(null);
+            setDeleteError(null);
+          }}
+          onConfirm={handleDeleteStudent}
+          studentName={studentToDelete.name}
         />
       )}
     </div>

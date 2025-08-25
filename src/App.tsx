@@ -11,7 +11,6 @@ import Settings from './pages/Settings';
 import Login from './pages/Login';
 import { UserProvider } from './context/UserContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import { useEffect, useState } from 'react';
 
 function App() {
   return (
@@ -22,7 +21,6 @@ function App() {
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="students" element={<Students />} />
-            {/* <Route path="students/:id" element={<StudentDetail />} /> */}
             <Route path="fees" element={<Fees />} />
             <Route path="attendance" element={<Attendance />} />
             <Route path="performance" element={<Performance />} />
