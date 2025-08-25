@@ -8,7 +8,6 @@ const Settings: React.FC = () => {
   const tabs = [
     { id: 'profile', label: 'Profile' },
     { id: 'institute', label: 'Institute Details' },
-    // { id: 'notifications', label: 'Notifications' },
     { id: 'security', label: 'Security' },
     { id: 'payment', label: 'Payment Settings' }
   ];

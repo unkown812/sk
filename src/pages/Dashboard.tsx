@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { Users, CreditCard } from 'lucide-react';
-import StatCard from '../components/dashboard/StatCard';
-import RecentFeePayments from '../components/dashboard/RecentFeePayments';
-// import AttendanceChart from '../components/dashboard/AttendanceChart';
-// import PerformanceWidget from '../components/dashboard/PerformanceWidget';
-import UpcomingExams from '../components/dashboard/UpcomingExams';
-import { studentService } from '../services/studentService';
-import supabase from '../lib/supabase';
-import DueDateReminder from '../components/dashboard/DueDateReminder';
-import BirthdayReminder from '../components/dashboard/BirthdayReminder';
+import React, { useEffect, useState } from "react";
+import { Users, CreditCard } from "lucide-react";
+import StatCard from "../components/dashboard/StatCard";
+import RecentFeePayments from "../components/dashboard/RecentFeePayments";
+import UpcomingExams from "../components/dashboard/UpcomingExams";
+import { studentService } from "../services/studentService";
+import supabase from "../lib/supabase";
+import DueDateReminder from "../components/dashboard/DueDateReminder";
+import BirthdayReminder from "../components/dashboard/BirthdayReminder";
 
 const Dashboard: React.FC = () => {
   const [totalStudents, setTotalStudents] = useState(0);
@@ -21,19 +19,22 @@ const Dashboard: React.FC = () => {
         setTotalStudents(students.length);
 
         const { data: studentsData, error } = await supabase
-          .from('students')
-          .select('total_fee, paid_fee');
+          .from("students")
+          .select("total_fee, paid_fee");
 
         if (error) throw error;
 
         if (studentsData && studentsData.length > 0) {
-          const totalFeesCollected = studentsData.reduce((sum: number, student: any) => sum + (student.total_fee || 0), 0);
+          const totalFeesCollected = studentsData.reduce(
+            (sum: number, student: any) => sum + (student.total_fee || 0),
+            0
+          );
           setTotalFeesCollected(totalFeesCollected);
         } else {
           setTotalFeesCollected(0);
         }
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        console.error("Error fetching dashboard data:", error);
       }
     };
     fetchData();
@@ -67,42 +68,38 @@ const Dashboard: React.FC = () => {
         />
       </div>
 
-      {/* Charts and tables section */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        {/* <div className="card">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Attendance Overview</h2>
-          <AttendanceChart />
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+          <div className="card overflow-hidden">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">
+              Recent Fee Payments
+            </h2>
+            <RecentFeePayments />
+          </div>
+
+          <div className="card">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">
+              Upcoming Exams
+            </h2>
+            <UpcomingExams />
+          </div>
         </div>
 
-        <div className="card">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Performance Overview</h2>
-          <PerformanceWidget />
-        </div> */}
-      </div>
-
-      {/* Tables section */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <div className="card overflow-hidden">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Recent Fee Payments</h2>
-          <RecentFeePayments />
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-1">
+          <div className="card">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">
+              Due Date Reminders
+            </h2>
+            <DueDateReminder />
+          </div>
         </div>
-
-        <div className="card">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Upcoming Exams</h2>
-          <UpcomingExams />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-1">
-        <div className="card">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Due Date Reminders</h2>
-          <DueDateReminder />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-1">
-        <div className="card">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Birthday Reminders</h2>
-          <BirthdayReminder />
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-1">
+          <div className="card">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">
+              Birthday Reminders
+            </h2>
+            <BirthdayReminder />
+          </div>
         </div>
       </div>
     </div>
