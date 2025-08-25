@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import  supabase  from '../lib/supabase';
+import supabase from '../lib/supabase';
 
 interface DatabaseContextType {
   supabase: typeof supabase;
