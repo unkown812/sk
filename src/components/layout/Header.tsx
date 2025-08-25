@@ -1,5 +1,5 @@
 import React from 'react';
-import {Search, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 interface HeaderProps {
   openSidebar: () => void;

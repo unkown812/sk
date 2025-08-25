@@ -7,7 +7,6 @@ import Attendance from './pages/Attendance';
 import Performance from './pages/Performance';
 import Courses from './pages/Courses';
 import Settings from './pages/Settings';
-// import StudentDetail from './pages/StudentDetail';
 import Login from './pages/Login';
 import { UserProvider } from './context/UserContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
