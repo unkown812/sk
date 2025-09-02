@@ -1,42 +1,36 @@
-import 'react-native-gesture-handler';
-import { StatusBar } from 'expo-status-bar';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import { Provider as PaperProvider } from 'react-native-paper';
-import { UserProvider } from './src/context/UserContext';
-import { DatabaseProvider } from './src/context/DatabaseContext';
-import LoginScreen from './src/screens/LoginScreen';
-import MainTabNavigator from './src/navigation/MainTabNavigator';
-import { useUser } from './src/context/UserContext';
-import { theme } from './src/theme/theme';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Layout from './components/layout/Layout';
+import Dashboard from './pages/Dashboard';
+import Students from './pages/Students';
+import Fees from './pages/Fees';
+import Attendance from './pages/Attendance';
+import Performance from './pages/Performance';
+import Courses from './pages/Courses';
+import Settings from './pages/Settings';
+// import StudentDetail from './pages/StudentDetail';
+import Login from './pages/Login';
+import { UserProvider } from './context/UserContext';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
-const Stack = createStackNavigator();
-
-function AppContent() {
-  const { isAuthenticated } = useUser();
-
+function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!isAuthenticated ? (
-          <Stack.Screen name="Login" component={LoginScreen} />
-        ) : (
-          <Stack.Screen name="Main" component={MainTabNavigator} />
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+    <UserProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+            <Route index element={<Dashboard />} />
+            <Route path="students" element={<Students />} />
+            <Route path="fees" element={<Fees />} />
+            <Route path="attendance" element={<Attendance />} />
+            <Route path="performance" element={<Performance />} />
+            <Route path="courses" element={<Courses />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+        </Routes>
+      </Router>
+    </UserProvider>
   );
 }
 
-export default function App() {
-  return (
-    <DatabaseProvider>
-      <UserProvider>
-        <PaperProvider theme={theme}>
-          <AppContent />
-          <StatusBar style="light" />
-        </PaperProvider>
-      </UserProvider>
-    </DatabaseProvider>
-  );
-}
+export default App;
