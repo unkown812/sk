@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Users, CreditCard } from "lucide-react";
+import { Users, CreditCard, Loader } from "lucide-react";
 import StatCard from "../components/dashboard/StatCard";
 import RecentFeePayments from "../components/dashboard/RecentFeePayments";
 import UpcomingExams from "../components/dashboard/UpcomingExams";
@@ -11,9 +11,11 @@ import BirthdayReminder from "../components/dashboard/BirthdayReminder";
 const Dashboard: React.FC = () => {
   const [totalStudents, setTotalStudents] = useState(0);
   const [totalFeesCollected, setTotalFeesCollected] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
         const students = await studentService.getAll();
         setTotalStudents(students.length);
@@ -35,21 +37,34 @@ const Dashboard: React.FC = () => {
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchData();
   }, []);
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader className="mx-auto h-12 w-12 animate-spin text-primary" />
+          <p className="mt-4 text-lg text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="space-y-6 animate-in fade-in-50 duration-500">
+      <div className="animate-in slide-in-from-top-4 duration-700">
         <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
         <p className="mt-1 text-sm text-gray-500">
           Overview of SK Tutorials management system
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 animate-in slide-in-from-bottom-4 duration-700 delay-200">
         <StatCard
           title="Total Students"
           value={totalStudents}
