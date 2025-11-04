@@ -6,7 +6,7 @@
   font-weight: 400;
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  background-color: #FAFAFA; /* MD3 Light background */
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -15,11 +15,11 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: #1976D2; /* MD3 Blue */
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: #1565C0; /* Darker blue */
 }
 
 body {
@@ -28,7 +28,7 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #242424;
+  background-color: #FAFAFA; /* MD3 Light background */
 }
 
 h1 {
@@ -43,12 +43,14 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #1976D2; /* MD3 Blue */
+  color: white;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.25s ease;
 }
 button:hover {
-  border-color: #646cff;
+  background-color: #1565C0; /* Darker blue */
+  border-color: #1565C0;
 }
 button:focus,
 button:focus-visible {
@@ -66,15 +68,41 @@ button:focus-visible {
   text-align: center;
 }
 
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: rgba(255, 255, 255, 0.87);
+    background-color: #0F1419; /* MD3 Dark background */
+  }
+
+  body {
+    background-color: #0F1419;
+  }
+
+  button {
+    background-color: #90CAF9; /* Lighter blue for dark mode */
+    color: #0F1419;
+  }
+
+  button:hover {
+    background-color: #64B5F6;
+    border-color: #64B5F6;
+  }
+}
+
+/* Light mode override */
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color:rgb(225, 225, 225);
+    color: #1C1B1F; /* MD3 on-background */
+    background-color: #FAFAFA; /* MD3 background */
   }
+
   a:hover {
-    color: #747bff;
+    color: #1565C0;
   }
+
   button {
-    background-color: #f9f9f9;
+    background-color: #1976D2;
+    color: white;
   }
 }

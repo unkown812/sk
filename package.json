@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.3",
@@ -24,13 +26,18 @@
     "@stagewise/toolbar-react": "^0.5.2",
     "@supabase/supabase-js": "^2.49.6",
     "date-fns": "^3.3.1",
-    "expo-cli": "^6.3.12",
+    "expo": "^54.0.21",
+    "expo-cli": "^4.0.17",
+    "expo-splash-screen": "^31.0.10",
+    "expo-status-bar": "~1.6.0",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-native": "^0.72.17",
     "react-router-dom": "^6.22.2"
   },
   "devDependencies": {
+    "@babel/core": "^7.20.0",
     "@electron-forge/cli": "^7.8.1",
     "@eslint/js": "^9.9.1",
     "@types/react": "^18.3.5",

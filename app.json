@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "sk-tutorials-management",
+    "slug": "sk-tutorials-management",
+    "version": "0.1.0",
+    "sdkVersion": "49.0.0",
+    "platforms": [],
+    "android": {
+      "package": "com.unkown812dev.sktutorialsmanagement"
+    }
+  }
+}

@@ -10,26 +10,29 @@ import Settings from './pages/Settings';
 // import StudentDetail from './pages/StudentDetail';
 import Login from './pages/Login';
 import { UserProvider } from './context/UserContext';
+import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
   return (
-    <UserProvider>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-            <Route index element={<Dashboard />} />
-            <Route path="students" element={<Students />} />
-            <Route path="fees" element={<Fees />} />
-            <Route path="attendance" element={<Attendance />} />
-            <Route path="performance" element={<Performance />} />
-            <Route path="courses" element={<Courses />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
-        </Routes>
-      </Router>
-    </UserProvider>
+    <ThemeProvider>
+      <UserProvider>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+              <Route index element={<Dashboard />} />
+              <Route path="students" element={<Students />} />
+              <Route path="fees" element={<Fees />} />
+              <Route path="attendance" element={<Attendance />} />
+              <Route path="performance" element={<Performance />} />
+              <Route path="courses" element={<Courses />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+          </Routes>
+        </Router>
+      </UserProvider>
+    </ThemeProvider>
   );
 }
 

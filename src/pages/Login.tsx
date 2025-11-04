@@ -8,14 +8,14 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { login, isAuthenticated } = useUser();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
+
     try {
       const success = await login(email, password);
       if (!success) {
@@ -46,7 +46,7 @@ const Login: React.FC = () => {
             Sign in to access the management system
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
@@ -98,17 +98,17 @@ const Login: React.FC = () => {
               </label>
             </div>
 
-            <div className="text-sm">
+            {/* <div className="text-sm">
               <a href="#" className="font-medium text-primary hover:text-primary-dark">
                 Forgot your password?
               </a>
-            </div>
+            </div> */}
           </div>
-          <div className="text-sm">
+          {/* <div className="text-sm">
               <Link to="/Register"  className="font-medium text-primary hover:text-primary-dark">
                 Register
               </Link>
-            </div>
+            </div> */}
 
           <div>
             <button

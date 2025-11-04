@@ -545,7 +545,7 @@ const Students: React.FC = () => {
         </div>
       </div>
       {showEditModal && editStudent && (
-        <div className="fixed inset-0 scrollbar-hide bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-auto p-4">
+        <div className="fixed inset-0 scrollbar-hide modal-overlay flex items-center justify-center z-50 overflow-auto p-4">
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Edit Student Details</h2>
@@ -1190,7 +1190,7 @@ const Students: React.FC = () => {
         </div>
       </div>
       {showAddModal && (
-        <div className="fixed inset-0 scrollbar-hide bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-auto p-4">
+        <div className="fixed inset-0 scrollbar-hide modal-overlay flex items-center justify-center z-50 overflow-auto p-4">
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Add New Student</h2>
@@ -1567,7 +1567,7 @@ const Students: React.FC = () => {
       )}
       ;{/* Fee Update Modal */}
       {showFeeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 modal-overlay flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">

@@ -4,9 +4,9 @@
 
 @layer base {
   :root {
-    --primary: 221 90% 45%;
-    --primary-light: 221 90% 55%;
-    --primary-dark: 221 90% 35%;
+    --primary: 207 90% 54%;
+    --primary-light: 207 90% 64%;
+    --primary-dark: 207 90% 44%;
   }
 
   html {
@@ -14,8 +14,142 @@
   }
 
   body {
-    @apply bg-black text-gray-700 min-h-screen;
+    @apply bg-background-light text-gray-900 min-h-screen transition-colors duration-300;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Dark mode styles */
+  .dark {
+    --primary: 207 90% 74%;
+    --primary-light: 207 90% 84%;
+    --primary-dark: 207 90% 64%;
+  }
+
+  .dark body {
+    @apply bg-background-dark text-gray-100;
+  }
+
+  .dark .card {
+    @apply bg-surface-dark border-gray-700;
+  }
+
+  .dark .input-field {
+    @apply bg-gray-800 border-gray-600 text-gray-100 placeholder-gray-400 focus:border-primary focus:ring-primary/30;
+  }
+
+  .dark .table-container {
+    @apply bg-surface-dark border-gray-700;
+  }
+
+  .dark .data-table th {
+    @apply bg-gray-800 text-gray-300;
+  }
+
+  .dark .data-table td {
+    @apply text-gray-300;
+  }
+
+  .dark .data-table tr {
+    @apply bg-surface-dark;
+  }
+
+  .dark .data-table tr:hover {
+    @apply bg-gray-800;
+  }
+
+  /* Additional dark mode styles for all components */
+  .dark .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-dark;
+  }
+
+  .dark .btn-secondary {
+    @apply bg-gray-700 text-gray-100 border-gray-600 hover:bg-gray-600;
+  }
+
+  .dark .badge {
+    @apply bg-gray-700 text-gray-100;
+  }
+
+  .dark .badge-blue {
+    @apply bg-blue-800 text-blue-100;
+  }
+
+  .dark .badge-green {
+    @apply bg-green-800 text-green-100;
+  }
+
+  .dark .badge-yellow {
+    @apply bg-yellow-800 text-yellow-100;
+  }
+
+  .dark .badge-red {
+    @apply bg-red-800 text-red-100;
+  }
+
+  .dark .badge-purple {
+    @apply bg-purple-800 text-purple-100;
+  }
+
+  /* Modal and overlay dark mode */
+  .dark .modal-overlay {
+    @apply bg-black bg-opacity-70;
+  }
+
+  .dark .bg-white.rounded-lg.shadow-lg {
+    @apply bg-surface-dark text-gray-100;
+  }
+
+  /* Layout components */
+  .dark .bg-white {
+    @apply bg-surface-dark text-gray-100;
+  }
+
+  .dark .text-gray-900 {
+    @apply text-gray-100;
+  }
+
+  .dark .text-gray-700 {
+    @apply text-gray-300;
+  }
+
+  .dark .text-gray-500 {
+    @apply text-gray-400;
+  }
+
+  .dark .text-gray-600 {
+    @apply text-gray-300;
+  }
+
+  .dark .border-gray-200 {
+    @apply border-gray-700;
+  }
+
+  .dark .border-gray-300 {
+    @apply border-gray-600;
+  }
+
+  .dark .bg-gray-50 {
+    @apply bg-gray-800;
+  }
+
+  .dark .bg-gray-100 {
+    @apply bg-gray-700;
+  }
+
+  .dark .hover\:bg-gray-50:hover {
+    @apply hover:bg-gray-800;
+  }
+
+  .dark .hover\:bg-orange-100:hover {
+    @apply hover:bg-orange-800;
+  }
+
+  .dark .hover\:bg-orange-200:focus {
+    @apply focus:bg-orange-700;
+  }
+
+  .dark .card {
+    @apply bg-surface-dark border-gray-700 text-gray-100;
   }
 }
 

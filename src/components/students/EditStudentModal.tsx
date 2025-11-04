@@ -1,6 +1,6 @@
 import React from "react";
 import { XCircle } from "lucide-react";
-import { Student } from "../../lib/database.types";
+import { Student } from "../../types/types";
 
 interface EditStudentModalProps {
   editStudent: Student;
@@ -40,12 +40,12 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 scrollbar-hide bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-auto p-4">
+    <div className="fixed inset-0 scrollbar-hide modal-overlay flex items-center justify-center z-50 overflow-auto p-4">
       <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Edit Student Details</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Edit Student Details</h2>
           <button
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             onClick={onClose}
             aria-label="Close modal"
           >
@@ -53,11 +53,11 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
           </button>
         </div>
         {addError && (
-          <div className="mb-4 text-red-600 font-medium">{addError}</div>
+          <div className="mb-4 text-red-600 font-medium dark:text-red-400">{addError}</div>
         )}
         <div className="space-y-4">
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Name
             </label>
             <input
@@ -66,12 +66,12 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
               id="name"
               value={editStudent.name || ""}
               onChange={onInputChange}
-              className="input-field mt-1"
+              className="input-field mt-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
               required
             />
           </div>
           <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Category
             </label>
             <input
@@ -80,11 +80,11 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
               id="category"
               value={editStudent.category || ""}
               onChange={onInputChange}
-              className="input-field mt-1"
+              className="input-field mt-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
             />
           </div>
           <div>
-            <label htmlFor="course" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="course" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Course
             </label>
             <input
@@ -93,11 +93,11 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
               id="course"
               value={editStudent.course || ""}
               onChange={onInputChange}
-              className="input-field mt-1"
+              className="input-field mt-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
             />
           </div>
           <div>
-            <label htmlFor="year" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="year" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Year
             </label>
             <input
@@ -106,11 +106,11 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
               id="year"
               value={editStudent.year || ""}
               onChange={onInputChange}
-              className="input-field mt-1"
+              className="input-field mt-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
             />
           </div>
           <div>
-            <label htmlFor="semester" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="semester" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Semester
             </label>
             <input
@@ -119,11 +119,11 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
               id="semester"
               value={editStudent.semester || ""}
               onChange={onInputChange}
-              className="input-field mt-1"
+              className="input-field mt-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
             />
           </div>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Email
             </label>
             <input
@@ -132,11 +132,11 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
               id="email"
               value={editStudent.email || ""}
               onChange={onInputChange}
-              className="input-field mt-1"
+              className="input-field mt-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
             />
           </div>
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Phone
             </label>
             <input
@@ -145,11 +145,11 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
               id="phone"
               value={editStudent.phone || ""}
               onChange={onInputChange}
-              className="input-field mt-1"
+              className="input-field mt-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
             />
           </div>
           <div>
-            <label htmlFor="enrollmentYearStart" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="enrollmentYearStart" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Enrollment Year Start
             </label>
             <input
@@ -158,11 +158,11 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
               id="enrollmentYearStart"
               value={enrollmentYearStart}
               onChange={handleEnrollmentYearStartChange}
-              className="input-field mt-1"
+              className="input-field mt-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
             />
           </div>
           <div>
-            <label htmlFor="enrollmentYearEnd" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="enrollmentYearEnd" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Enrollment Year End
             </label>
             <input
@@ -171,11 +171,11 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
               id="enrollmentYearEnd"
               value={enrollmentYearEnd}
               onChange={handleEnrollmentYearEndChange}
-              className="input-field mt-1"
+              className="input-field mt-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
             />
           </div>
           <div>
-            <label htmlFor="total_fee" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="total_fee" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Total Fee
             </label>
             <input
@@ -184,12 +184,12 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
               id="total_fee"
               value={editStudent.total_fee || ""}
               onChange={onInputChange}
-              className="input-field mt-1"
+              className="input-field mt-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
               min={0}
             />
           </div>
           <div>
-            <label htmlFor="installments" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="installments" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Installments
             </label>
             <input
@@ -198,11 +198,11 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
               id="installments"
               value={editStudent.installments || ""}
               onChange={onInputChange}
-              className="input-field mt-1"
+              className="input-field mt-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
             />
           </div>
           <div>
-            <label htmlFor="fee_status" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="fee_status" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Fee Status
             </label>
             <input
@@ -211,11 +211,11 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
               id="fee_status"
               value={editStudent.fee_status || ""}
               onChange={onInputChange}
-              className="input-field mt-1"
+              className="input-field mt-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
             />
           </div>
           <div>
-            <label htmlFor="subjects_enrolled" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="subjects_enrolled" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Subjects Enrolled
             </label>
             <input
@@ -241,19 +241,19 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
                 });
               }}
               placeholder="Enter subjects separated by commas"
-              className="input-field mt-1"
+              className="input-field mt-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
             />
           </div>
           {editStudent.installments && editStudent.installments > 0 && (
             <div className="mt-4">
-              <h3 className="text-md font-semibold mb-2">
+              <h3 className="text-md font-semibold mb-2 text-gray-900 dark:text-white">
                 Installment Due Dates
               </h3>
               {[...Array(editStudent.installments)].map((_, index) => (
                 <div key={index} className="mb-2">
                   <label
                     htmlFor={`installment_date_${index}`}
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                   >
                     Installment {index + 1} Due Date
                   </label>
@@ -279,19 +279,19 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
                         } as Student;
                       });
                     }}
-                    className="input-field mt-1"
+                    className="input-field mt-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                     required
                   />
                 </div>
               ))}
-              <h3 className="text-md font-semibold mb-2 mt-6">
+              <h3 className="text-md font-semibold mb-2 mt-6 text-gray-900 dark:text-white">
                 Due Dates
               </h3>
               {[...Array(editStudent.installments)].map((_, index) => (
                 <div key={`due_date_${index}`} className="mb-2">
                   <label
                     htmlFor={`due_date_${index}`}
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                   >
                     Due Date {index + 1}
                   </label>
@@ -316,7 +316,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
                         } as Student;
                       });
                     }}
-                    className="input-field mt-1"
+                    className="input-field mt-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   />
                 </div>
               ))}
@@ -326,7 +326,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
             <div key={index} className="mb-2">
               <label
                 htmlFor={`installment_amt_${index}`}
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
                 Installment {index + 1} amount
               </label>
@@ -349,14 +349,14 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
                     return { ...prev, installment_amt: newAmts } as Student;
                   });
                 }}
-                className="input-field mt-1"
+                className="input-field mt-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                 required
               />
             </div>
           ))}
           <div className="mt-6 flex justify-end space-x-4">
             <button
-              className="btn-secondary"
+              className="btn-secondary dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:hover:bg-gray-600"
               onClick={onClose}
               disabled={adding}
             >

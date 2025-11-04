@@ -1,64 +1,29 @@
-# TODO: Enhance UI with More Responsive and Interactive Elements
+# Enhance Colors and UI with Modern Color Schemes
+
+## Tasks
+- [ ] Update src/theme/theme.ts with Material Design 3 light and dark themes
+- [ ] Update tailwind.config.js with MD3 colors and dark mode support
+- [ ] Update src/index.css for dark mode utilities
+- [ ] Update src/style.css for better dark mode support
+- [ ] Test dark mode toggle in settings
+- [ ] Verify UI components use new themes properly
 
 ## Information Gathered
-- The app is a React-based management system for SK Tutorials using Vite, Tailwind CSS, and Lucide icons.
-- Current UI includes responsive layout with sidebar toggle, stat cards, tab navigation, and dashboard widgets.
-- Custom CSS classes provide skewmorphism shadows and basic styling.
-- Tailwind config extends colors, shadows, and transitions.
-- Components like Layout, Sidebar, Header, StatCard, TabNav, and Dashboard are key for enhancements.
+- Project uses React Native Paper for mobile screens and Tailwind CSS for web pages
+- Current theme has blue primary (#3550B2), orange secondary (#FF8A00)
+- Settings screen has dark mode toggle but no full dark theme implementation
+- Colors are used in screens like Dashboard, Students, Fees, etc.
 
 ## Plan
-### 1. Enhance StatCard Component
-- Add hover animations (e.g., scale and shadow increase).
-- Include tooltips for additional info on hover.
-- Improve responsiveness with better text sizing on small screens.
+1. Implement Material Design 3 color palette (light and dark variants)
+2. Add dark mode support to themes
+3. Update Tailwind config with new color tokens
+4. Enhance CSS with dark mode classes
+5. Ensure components adapt to theme changes
 
-### 2. Improve Sidebar Responsiveness and Interactivity
-- Add smooth slide-in/slide-out animations.
-- Enhance active link states with better visual feedback.
-- Add keyboard navigation support.
-
-### 3. Upgrade Header Component
-- Enable and enhance the search bar (currently commented out) with interactive search suggestions.
-- Add user menu dropdown with smooth animations.
-- Improve mobile responsiveness for the header elements.
-
-### 4. Enhance TabNav Component
-- Add smooth transitions between tabs.
-- Include active tab indicators with animations.
-- Make tabs more touch-friendly on mobile.
-
-### 5. Improve Dashboard Page
-- Add loading states with spinners for data fetching.
-- Enhance grid layouts for better responsiveness across devices.
-- Add interactive elements like expandable widgets or quick actions.
-
-### 6. Overall UI Enhancements
-- Add global hover effects and transitions using Tailwind.
-- Implement focus states for accessibility.
-- Add subtle animations (e.g., fade-ins) for better user experience.
-- Update CSS classes in index.css for more interactive utilities.
-
-## Dependent Files to Edit
-- `src/components/dashboard/StatCard.tsx`
-- `src/components/layout/Sidebar.tsx`
-- `src/components/layout/Header.tsx`
-- `src/components/ui/TabNav.tsx`
-- `src/pages/Dashboard.tsx`
-- `src/index.css`
-- `tailwind.config.js` (if needed for additional utilities)
-
-## Followup Steps
-- Test the app on various screen sizes (mobile, tablet, desktop) to ensure responsiveness.
-- Run the app locally and use browser dev tools to verify animations and interactions.
-- Check accessibility with tools like Lighthouse.
-- If needed, add unit tests for interactive components.
-
-## Completed Tasks
-- [x] Enhanced StatCard with hover animations, scaling, and icon rotation.
-- [x] Improved Sidebar with smooth transitions, hover effects, and better active states.
-- [x] Upgraded Header with functional search bar, user dropdown menu, and animations.
-- [x] Enhanced TabNav with transitions, hover effects, and overflow handling.
-- [x] Added loading states and fade-in animations to Dashboard.
-- [x] Updated index.css with interactive utility classes and keyframes.
-- [x] Extended Tailwind config with custom animations and keyframes.
+## Dependent Files
+- src/theme/theme.ts
+- tailwind.config.js
+- src/index.css
+- src/style.css
+- src/screens/SettingsScreen.tsx (for dark mode toggle functionality)
